@@ -80,19 +80,19 @@ bool destRangeSpoof = false;
 
 // Integers and Arrays
 int rawsock = 0;
-int ttime;
-unsigned int srcaddr;
-unsigned int dstaddr;
-unsigned int a_flags[11];
-unsigned char currentFlag;
-unsigned int start;
+int ttime = 0;
+unsigned int srcaddr = 0;
+unsigned int dstaddr = 0;
+unsigned int a_flags[11] = { 0 };
+unsigned char currentFlag = { 0 };
+unsigned int start = 0;
 unsigned long long int packets = 0;
 unsigned short databytes = 0;
-unsigned char bytes[4];
-unsigned char bytes2[4];
+unsigned char bytes[4] = { 0 };
+unsigned char bytes2[4] = { 0 };
 static uint32_t Q[4096], c = 518267;
-unsigned int a;
-unsigned int b;
+unsigned int a = 0;
+unsigned int b = 0;
 
 struct ip
 {
@@ -531,7 +531,7 @@ int main(int argc, char** argv)
         {
             printf("-> The supreme art of war is to subdue the enemy without fighting. - Peace Keeper.\n");
             printf("-> Usage: <key> <pkts per ip> <dest> <src> <dstport> <srcport> <flags> <size> <winsize> <ttl> <flood time in seconds>\n");
-            printf("-> Randomizations: dest or src ip <0> or class <X.X.0.0>, srcport & dstport <0,1>, ttl <0>, winsize <0,1>, flags <129,130>\n");
+            printf("-> Randomizations: dest or src ip <0> or class <X.X.0.0>, srcport & dstport <0,1>, ttl <0>, winsize <1,2>, flags <129,130>\n");
             exit(0);
         }
     }
