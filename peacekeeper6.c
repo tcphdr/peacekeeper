@@ -208,11 +208,13 @@ void attack(unsigned short dstport, unsigned short srcport, unsigned short flags
             {
                 tcp->th_flags = htonl(0);
                 tcp->th_flags = htonl(0);
+                break;
             }
             default:
             {
                 tcp->th_flags = htonl(rand_cmwc());
                 tcp->th_flags = htonl(rand_cmwc());
+                break;
             }
         }
         /* Randomized win sizes. */
