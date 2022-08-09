@@ -701,7 +701,7 @@ int main(int argc, char** argv)
         printf("TCP Time-To-Live Randomization [✔️] ");
 
     if (winsize == 0 || winsize == 1)
-        printf("TCP Window Size Randomization [✔️] ");
+        printf("TCP Window Size Randomization [✔️] \r\n");
 
     attack(pktqueue, dstip, srcip, dstport, srcport, flags, winsize, ttl, ttime);
 }
