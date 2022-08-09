@@ -1,6 +1,8 @@
-# Peace Keeper - The supreme art of war is to subdue the enemy without fighting
+# Peace Keeper.
  A set of IPv4 and IPv6 network stress testing tools.
 
 gcc file.c -o file ; ./file
 
 This tool is pretty much EOL, it was public for a short time, however if you have access to this repo, I expect you to maintain my wish and keep it this way. Since the flipping of the "switch" from public to private, various other changes, touchups, and bug fixes were implemented. I know I said it's EOL but I'll probably find something else broken and need to address it sooner or later. shrug.
+
+The supreme art of war is to subdue the enemy without fighting.
