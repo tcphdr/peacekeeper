@@ -97,7 +97,7 @@ unsigned int b = 0;
 
 struct ip
 {
-    unsigned int ip_hl : 5;         /* header length */
+    unsigned int ip_hl : 4;         /* header length */
     unsigned int ip_v : 4;          /* version */
     unsigned char ip_tos;           /* type of service */
     unsigned short ip_len;          /* total length */
@@ -519,7 +519,6 @@ void attack(unsigned int pktqueue, unsigned int dstip, unsigned int srcip, unsig
 
         // Calculate TCP checksum
         xf_tcphdr->th_sum = csum((unsigned short*)tcpbuf.buf, sizeof(struct tcphdr2) + sizeof(struct tcp_opthdr) + databytes);
-        xf_tcphdr->th_sum = 0;
 
         #ifdef DEBUG_TCP
         printf("> Loop Pseudo HDR: %u\n", sizeof(struct ph));

