@@ -63,7 +63,7 @@ By darkness@efnet. // greetz vae@efnet.
 #define RAND_PORT_MAX                 65534         // Max TCP port randomization
 #define TCP_WINDOW_SIZE_MIN           1             // Min TCP window size.
 #define TCP_WINDOW_SIZE_MAX           65534         // Max TCP window size.
-#define TCP_TTL_MIN                   32            // Min TCP TTL length
+#define TCP_TTL_MIN                   1            // Min TCP TTL length
 #define TCP_TTL_MAX                   255           // Max TCP TTL length
 #define TCP_DATA_LEN_MIN              0             // Min TCP data length
 #define TCP_DATA_LEN_MAX              1024          // Max TCP data length
@@ -633,13 +633,7 @@ int main(int argc, char** argv)
         printf("-> Acceptable TCP window sizes are between 0 and 65535.\n");
         exit(-1);
     }
-    // Don't allow low TCP ttl values, why would you? lol.
-    if (ttl <= 31 && ttl != 0)
-    {
-        printf("-> Acceptable TCP ttl values are between %u and %u.\n", TCP_TTL_MIN, TCP_TTL_MAX);
-        exit(-1);
-    }
-
+    
     // Parse dest IP input.
     if (dstip <= 0)
     {

