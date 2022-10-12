@@ -153,7 +153,7 @@ struct tcp_opt
     unsigned char op19;
 };
 
-struct udp
+/*struct udp
 {
     unsigned short srcport;
     unsigned short dstport;
@@ -168,7 +168,7 @@ struct icmp
     unsigned short int chksum;
     unsigned short int id;
     unsigned short int seq;
-};
+};*/
 
 // Assemble Headers
 struct ip* pk_iphdr = (struct ip*)datagram;
