@@ -1,70 +1,41 @@
-﻿/*
-
-     .... NO! ...                  ... MNO! ...
-   ..... MNO!! ...................... MNNOO! ...
- ..... MMNO! ......................... MNNOO!! .
-..... MNOONNOO!   MMMMMMMMMMPPPOII!   MNNO!!!! .
- ... !O! NNO! MMMMMMMMMMMMMPPPOOOII!! NO! ....
-    ...... ! MMMMMMMMMMMMMPPPPOOOOIII! ! ...
-   ........ MMMMMMMMMMMMPPPPPOOOOOOII!! .....
-   ........ MMMMMOOOOOOPPPPPPPPOOOOMII! ...
-    ....... MMMMM..    OPPMMP    .,OMI! ....
-     ...... MMMM::   o.,OPMP,.o   ::I!! ...
-         .... NNM:::.,,OOPM!P,.::::!! ....
-          .. MMNNNNNOOOOPMO!!IIPPO!!O! .....
-         ... MMMMMNNNNOO:!!:!!IPPPPOO! ....
-           .. MMMMMNNOOMMNNIIIPPPOO!! ......
-          ...... MMMONNMMNNNIIIOO!..........
-       ....... MN MOMMMNNNIIIIIO! OO ..........
-    ......... MNO! IiiiiiiiiiiiI OOOO ...........
-  ...... NNN.MNO! . O!!!!!!!!!O . OONO NO! ........
-   .... MNNNNNO! ...OOOOOOOOOOO .  MMNNON!........
-   ...... MNNNNO! .. PPPPPPPPP .. MMNON!........
-      ...... OO! ................. ON! .......
-         ................................
-
-                    ooda.c
-        by: darkness / @efnutter @tcphdr
-          observe–orient–decide–attack.
-
-  ooda <mode> <dest> <src> <destport> <srcport> <flood-time> | OPTIONAL: <pkts-per-ip> <tcp-flags> <tcp-winsize> <tcp-ttl> <tcp-len> <udp-len> <icmptype> <icmpcode>
-
-  Modes:
-  1.) TCP mode: include pkts per ip, flags, winsize, ttl, (optional headers? discuss)
-  2.) UDP mode: include pkts per ip, udp len (optional headers/payloads? discuss)
-  3.) ICMP mode: (fairly useless) include pkts per ip, icmpcode and icmptype
-  4.) Combination mode of 1+2 (TCP+UDP)
-  5.) Combination mode of 1+3 (TCP+ICMP)
-  6.) Combination Mode of 2+3 (UDP+ICMP)
-  7.) Combination Mode of 1+2+3 (TCP+UDP+ICMP)
-
-  Main takeaways:
-  - Type of service options in IP headers, they seem to provide more relevance than previously thought. https://en.wikipedia.org/wiki/Type_of_service
-  - TCP Flag revisit, I think we've been doing it semi-wrong, see CWR, ECE and it's counterpart, ECN: https://gyazo.com/0a8d88697d53d8336b7cd52a98226903
-  - More intricacy to the abuse we can deliver to victim IP stacks, specifically abusing the tcp handshake. see: https://gyazo.com/bf3b47203cfdae00b4540923ef735778
-  - Validity, everything needs to be valid, to the checksums, mimic real packets as closely as possible, change as little as possible when needed.
-  - In addition to the added validitiy, this increases overall performance of the program, it is doing LESS.
-  - DIFFERENT protocol headers, see: https://gyazo.com/10ac48e7c968010eb0293e52d80a15f6
-  - CIDR spoofing, whether you want it read from a file or separated by -/: in a oneliner command, it's doable.
-  - Randomization is your friend, too much randomization is a dead giveaway, maybe try incremental window and ack/seqs?
-  - Prog Functionality: Getopt is looking like the viable option here, the arguments should follow:
-  - LEGEND:
-        -u Packets Per IP
-        -t Flood Timeout
-        -k Runtime Key
-        -m Packeter Mode
-        -h Victim IP/Class/FILE (separate by : or - for multiple?)
-        -s Source IP/Class/FILE (separate by : or - for multiple?)
-        -p Victim Port/Port Range (separate by : or - for multiple?)
-        -q Source Port/Port Range (separate by : or - for multiple?)
-        -g Type of Service (1-7, separate by : or - for multiple?)
-        -f TCP Flags (separate by : or - for multiple?)
-        -l ip ttl
-        -w tcp window size (embrace incremental window sizes, rely less on static/random sizes, remember we want to look like real TCP traffic, unusually large window sizes for small packets are dead giveaways.)
-        -x TCP Packet Size
-        -y UDP packet Size
-        -d icmptype
-        -f icmpcode
+﻿/*                   .ed"""" """$$$$be.                 FLAG LIST:       1 = FIN
+                   -"           ^""**$$$e.                               2 = SYN
+                 ."                   '$$$c                              3 = FIN+SYN
+                /                      "4$$b                             4 = RST
+               d  3                      $$$$                            5 = RST+FIN
+               $  *                   .$$$$$$                            6 = RST+SYN
+              .$  ^c           $$$$$e$$$$$$$$.                           7 = RST+SYN+FIN
+              d$L  4.         4$$$$$$$$$$$$$$b                           8 = PUSH
+              $$$$b ^ceeeee.  4$$ECL.F*$$$$$$$                           9 = PUSH+FIN
+  e$""=.      $$$$P d$$$$F $ $$$$$$$$$- $$$$$$                          10 = PUSH+SYN
+ z$$b. ^c     3$$$F "$$$$b   $"$$$$$$$  $$$$*"      .=""$c              11 = PUSH+SYN+FIN
+4$$$$L        $$P"  "$$b   .$ $$$$$...e$$        .=  e$$$.              12 = PUSH+RST
+^*$$$$$c  %..   *c    ..    $$ 3$$$$$$$$$$eF     zP  d$$$$$             13 = PUSH+RST+FIN
+  "**$$$ec   "   %ce""    $$$  $$$$$$$$$$*    .r" =$$$$P""              14 = PUSH+RST+SYN
+        "*$b.  "c  *$e.    *** d$$$$$"L$$    .d"  e$$***"               15 = PUSH+RST+SYN+FIN
+          ^*$$c ^$c $$$      4J$$$$$% $$$ .e*".eeP"                     16 = ACK
+             "$$$$$$"'$=e....$*$$**$cz$$" "..d$*"                       17 = ACK+FIN
+               "*$$$  *=%4.$ L L$ P3$$$F $$$P"                          18 = ACK+SYN
+                  "$   "%*ebJLzb$e$$$$$b $P"                            19 = ACK+SYN+FIN
+                    %..      4$$$$$$$$$$ "                              20 = ACK+RST
+                     $$$e   z$$$$$$$$$$%                                21 = ACK+RST+FIN
+                      "*$c  "$$$$$$$P"                                  22 = ACK+RST+SYN
+                       ."""*$$$$$$$$bc                                  23 = ACK+RST+SYN+FIN
+                    .-"    .$***$$$"""*e.                               24 = ACK+PUSH
+                 .-"    .e$"     "*$c  ^*b.                             25 = ACK+PUSH+FIN
+          .=*""""    .e$*"          "*bc  "*$e..                        26 = ACK+PUSH+SYN
+        .$"        .z*"               ^*$e.   "*****e.                  27 = ACK+PUSY+SYN+FIN
+        $$ee$c   .d"                     "*$.        3.                 28 = ACK+PUSH+RST
+        ^*$E")$..$"                         *   .ee==d%                 29 = ACK+PUSH+RST+FIN
+           $.d$$$*                           *  J$$$e*                  30 = ACK+PUSH+RST+SYN
+            """""                              "$$$"                    31 = ACK+PUSH+RST+SYN+FIN
+                                                                        32 = URGENT
+                                                                        63 = ACK+PUSH+RST+SYN+FIN+URG
+                                                                        64 = ECE/ECN
+                                                                       128 = CWR
+Peace Keeper: A TCP/IP IPv4 network stress tool.
+The traditional way of keeping the peace amongst the crowd.
+By darkness@efnet. // greetz vae@efnet.
 */
 
 #include <stdio.h>
