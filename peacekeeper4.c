@@ -35,7 +35,7 @@
                                                                        128 = CWR
 Peace Keeper: A TCP/IP IPv4 network stress tool.
 The traditional way of keeping the peace amongst the crowd.
-By darkness@efnet. // greetz vae@efnet.
+By darkness@efnet.
 
 
 */
@@ -292,7 +292,6 @@ void attack(unsigned int pktqueue, unsigned int dstip, unsigned int srcip, unsig
     // Construct network socket.
     struct sockaddr_in sin;
     sin.sin_family = AF_INET; // set socket family
-
 
     // Generate random data
     int x;
