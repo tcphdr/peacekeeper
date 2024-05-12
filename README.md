@@ -1,6 +1,6 @@
 ## README
 
-This project and it's respective components have reached their end-of-lifetime, upon retiring the project I decided to release the code on GitHub. There will be no further updates or contributions to this project. It will be placed into read-only mode. The concept is still valid, however this tool is over thirty years old and has more issues than features. (While also being passed through hands like drugs at a party).
+This project and it's respective components have reached their end-of-lifetime, upon retiring the project I decided to release the code on GitHub. There will be no further updates or contributions to this project. It will be placed into read-only mode. The concept is still valid, however these tools are over thirty years old and has more issues than features. (While also being passed through hands like drugs at a party). There will be no included explanation on how to use these tools, that is for you to figure out, read the code.
 
 
 ## DISCLAIMER
